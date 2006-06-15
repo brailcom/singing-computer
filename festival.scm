@@ -40,7 +40,7 @@
 (define song:*syllabify* #f)
 
 ;; Base Festival octave to which LilyPond notes are mapped.
-(define song:*base-octave* 4)
+(define song:*base-octave* 5)
 
 ;; Iff true, enable a lot of debugging output
 (define song:*debug* #t)
