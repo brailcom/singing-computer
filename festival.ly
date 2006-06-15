@@ -29,3 +29,10 @@ festival =
 #(def-music-function (parser location filename tempo music) (string? ly:music? ly:music?)
   (song:output-file music tempo filename)
   music)
+
+% \festivalsyl #"filename" { \tempo N = X } { music }
+festivalsyl =
+#(def-music-function (parser location filename tempo music) (string? ly:music? ly:music?)
+  (set! song:*syllabify* #t)
+  (song:output-file music tempo filename)
+  music)
