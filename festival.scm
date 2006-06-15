@@ -575,8 +575,13 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
     (while (not (null? note-list))
       (if (null? lyrics/skip-list)
           (begin
-            (song:warning "Missing lyrics: ~a" note-list)
-            (set! note-list '()))
+            (while (and (not (null? note-list))
+                        (song:rest? (car note-list)))
+              (set! note-list (cdr note-list)))
+            (if (not (null? note-list))
+                (begin
+                  (song:warning "Missing lyrics: ~a" note-list)
+                  (set! note-list '()))))
           (let ((lyrics/skip (car lyrics/skip-list)))
             (receive (notelist/rest note-list*) (if (song:lyrics? lyrics/skip)
                                                     (song:consume-lyrics-notes lyrics/skip note-list context)
