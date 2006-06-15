@@ -41,6 +41,11 @@
 
 ;; Base Festival octave to which LilyPond notes are mapped.
 (define song:*base-octave* 5)
+;; The resulting base octave is sum of song:*base-octave* and
+;; song:*base-octave-shift*.  This is done to work around a Festival bug
+;; causing Festival to segfault or produce invalid pitch on higher pitches.
+;(define song:*base-octave-shift* -2)
+(define song:*base-octave-shift* 0)
 
 ;; Iff true, enable a lot of debugging output
 (define song:*debug* #t)
@@ -221,7 +226,8 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
     (if tempo
         (let* ((count (ly:music-property tempo 'metronome-count))
                (duration (ly:music-property tempo 'tempo-unit)))
-          (round (* count (* (song:duration->number duration) 4)))))))
+          (round (* count (* (song:duration->number duration)
+                             (expt 2 (+ 2 song:*base-octave-shift*)))))))))
 
 (song:defstruct music-context
   music
@@ -793,7 +799,8 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
   (let* ((semitones (ly:pitch-semitones pitch))
          (octave (quotient semitones 12))
          (tone (modulo semitones 12)))
-    (format #f "~a~a" (cadr (assoc tone song:festival-note-mapping)) (+ octave song:*base-octave*))))
+    (format #f "~a~a" (cadr (assoc tone song:festival-note-mapping))
+            (+ octave song:*base-octave* song:*base-octave-shift*))))
 
 (define (song:write-header port tempo)
   (let ((beats (or (song:tempo->beats tempo) 100)))
