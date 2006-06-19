@@ -1,0 +1,136 @@
+Singing Computer
+================
+
+Singing Computer is a utility making possible to sing lyrics of score notated
+in the LilyPond music typesetting system.  It is intended to be used especially
+by visually impaired LilyPond users who need checking of mutual lyrics and
+notes alignment.  This can be done by inserting a newly defined LilyPond
+command into the LilyPond score definition that generates a song written in a
+Festival speech synthesis definition file.  That file can then be processed
+with Festival to create a sound file with the song sung.
+
+Basic knowledge of LilyPond is expected to be able to work with Singing
+Computer.  If you don't know LilyPond at all, you can read a LilyPond tutorial
+that is distributed together with LilyPond.
+
+* Installation
+
+The first step is to ensure the following software is installed:
+
+- LilyPond (http://www.lilypond.org) -- a music typesetting system.
+
+- Festival (http://www.festvox.org/festival/index.html) -- a speech synthesis
+  system.
+
+- Particular language support for Festival.  English support is available
+  directly from Festival web pages
+  (http://www.festvox.org/festival/index.html), links to other languages are at
+  http://festlang.berlios.de/languages.html.
+
+- Iconv -- character set conversion utility, distributed with GNU libc.
+
+The simplest way to install that software should be from your OS distribution
+packages.  For instance, it is contained in the following packages: lilypond,
+festival, festvox-kallpc16k.
+
+After the required software is installed, it is necessary to perform the
+following installation steps:
+
+- Unpack the singing-computer distribution package.
+
+- Replace Festival's singing-mode.scm file with the singing-mode.scm file from
+  singing-computer.
+
+- Install the festival.ly file to the LilyPond ly/ directory.
+
+- Install the festival.scm file to the LilyPond scm/ directory.
+
+* Usage
+
+Singing Computer defines two new LilyPond commands: \festival and \festivalsyl.
+They are similar to the \midi command.  They have the following form:
+
+  \include "festival.ly"
+  \festival #"FILE.xml" { \tempo 4 = 100 }
+
+Score element containing lyrics must follow the command.
+
+The command means that the Festival song description file FILE.xml should be
+generated for the following piece of music.  The defined tempo is 1/4 = 100; it
+is given to the \festival and \festivalsyl command the same way as to the \midi
+command.
+
+The \festival and \festivalsyl have the same arguments and do the same thing,
+they only difference is in splitting words to syllables.  The \festival command
+generates whole words in the output FILE.xml, while the \festivalsyl command
+splits words into syllables according to hyphens specified in the lyrics input.
+English should use \festival, some other languages (such as Czech) may require
+using \festivalsyl.  The choice of the command has not direct effect on the
+sound output, but right choice is needed to get the speech (song) synthesis
+done properly.
+
+Single input LilyPond file may contain several occurrences of the \festival and
+\festivalsyl commands, with output to different .xml files.
+
+Look into tests/*.ly files for some basic examples of using the commands.
+
+When the input *.ly file is processed with LilyPond, the corresponding XML file
+(or files) is created (unless an error occurs).  This file must then be
+processed with Festival to create the resulting sound file.  You can do that
+with the help of the `synthesize.sh' script that can be called in one of the
+following ways:
+
+- synthesize.sh FILE.xml [ LANGUAGE-CODE-OR-VOICE-NAME [ SPEEDUP ] ]
+
+  A sound file corresponding to the FILE.xml is created.  The second argument
+  in the call is given the language code (`en' and `cs' are supported) or
+  directly the Festival voice selection function name (such as
+  `voice_kal_diphone' or `voice_czech_ph').  The third optional argument is
+  speedup of the resulting sound (see the "Problems" section below).
+
+- synthesize.sh FILE.ly [ LANGUAGE-CODE-OR-VOICE-NAME ]
+
+  The input FILE.ly is processed with both LilyPond and Festival.  Contingent
+  speedup is automatically detected from the input file.  This form of
+  synthesize.sh call works only when there is single use of the \festival and
+  \festivalsyl commands in the input file.
+
+In both cases the resulting sound file FILE.wav gets created that can be played
+with any sound player.
+
+* Problems
+
+Current Festival versions contain a bug that causes Festival crashes or
+generating incorrect pitch values from certain pitch level above.  There are
+two ways to work around the bug:
+
+1. Lowering the octave of the generated output by setting the
+   song:*base-octave* LilyPond variable.  This is necessary to do before the
+   first use of the \festival and \festivalsyl commands in the following way:
+
+      #(set! song:*base-octave* 3)
+
+   Implicit value of the song:*base-octave* variable is 5.  The setting above
+   causes lowering the song pitch by 2 octaves.
+
+2. Lowering the pitch of the output together with slowing it down and then
+   resampling it to the right pitch.  This way is somewhat more complicated.
+   The first step is lowering the pitch and slowing down the rate before the
+   first use of the \festival and \festivalsyl commands in the LilyPond input
+   file:
+
+     #(set! song:*base-octave-shift* -2)
+
+   This makes the resulting sound 2 octaves lower and 4 times slower.  After
+   the resulting wave file FILE.wav is generated it can be resampled with the
+   command
+
+     sox FILE.wav RESAMPLED.wav 4
+
+   This way you get the song in the right octave, but the result is of very low
+   quality.
+
+* Contact
+
+You can send questions, bug reports and other things you'd like to tell us to
+the mailing list singing-computer@lists.freebsoft.org.
