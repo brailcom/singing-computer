@@ -11,6 +11,7 @@
 ;;; - Slur support.
 ;;; - Czech support.
 ;;; - Some cleanup.
+;;; - Print debugging information only when singing-debug is true.
 ;;;
 ;;; This code is public domain; anyone may use it freely.
 ;;;
@@ -25,6 +26,9 @@
 (xml_register_id "-//SINGING//ENTITIES Added Latin 1 for SINGING//EN"
 		 (path-append xml_dtd_dir  "sable-latin.ent")
 		 )
+
+;; Set this to t to enable debugging messages:
+(defvar singing-debug nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -63,8 +67,10 @@
 
     (")PITCH" (ATTLIST UTT)
      (let ((freq (get-freqs singing_pitch_att_list)))
-       (print "freqs")
-       (print freq)
+       (if singing-debug
+           (begin
+             (print "freqs")
+             (print freq)))
        (singing-append-feature! UTT 'freq freq))
      UTT)
     
@@ -74,15 +80,19 @@
 
     (")DURATION" (ATTLIST UTT)
      (let ((dur (get-durs singing_dur_att_list)))
-       (print "durs")
-       (print dur)
+       (if singing-debug
+           (begin
+             (print "durs")
+             (print dur)))
        (singing-append-feature! UTT 'dur dur))
      UTT)
     
     ("(REST" (ATTLIST UTT)
      (let ((dur (get-durs ATTLIST)))
-       (print "rest durs")
-       (print dur)
+       (if singing-debug
+           (begin
+             (print "rest durs")
+             (print dur)))
        (singing-append-feature! UTT 'rest (caar dur)))
      UTT)
     ))
@@ -149,16 +159,20 @@
 ;;
 
 (define (note->freq note)
-  (format t "note is %l\n" note)
-  (set! note (print_string note))
+  (if singing-debug
+      (format t "note is %l\n" note))
+  (set! note (format nil "%s" note))
+  (if singing-debug
+      (print_string note))
   (let (l octave notename midinote thefreq)
     (set! l (string-length note))
-    (set! octave (substring note (- l 2) 1))
-    (set! notename (substring note 1 (- l 3)))
+    (set! octave (substring note (- l 1) 1))
+    (set! notename (substring note 0 (- l 1)))
     (set! midinote (+ (* 12 (parse-number octave))
                       (notename->midioffset notename)))
     (set! thefreq (midinote->freq midinote))
-    (format t "note %s freq %f\n" note thefreq)
+    (if singing-debug
+        (format t "note %s freq %f\n" note thefreq))
     thefreq))
 
 ;;
@@ -279,10 +293,12 @@
         (phone1 (item.daughter1 (item.relation syl 'SylStructure)))
         (prevsyl (item.prev (item.relation syl 'Syllable))))
     (let ((offset (get_duration_offset (item.feat phone1 "name"))))
-      (format t "offset: %f\n" offset) 
+      (if singing-debug
+          (format t "offset: %f\n" offset) )
       (if (< syldur totlen)
           (set! offset (* offset (/ syldur totlen))))
-      (format t "Want to adjust syl by %f\n" offset)
+      (if singing-debug
+          (format t "Want to adjust syl by %f\n" offset))
       (if prevsyl
           (begin
             (item.set_feat prevsyl 'subtractoffset offset)
@@ -320,12 +336,15 @@
           (subtractoffset (item.feat syl 'subtractoffset))
           offset)
       (set! offset (- subtractoffset addoffset))
-      (format t "Vowlen: %f conslen: %f totlen: %f\n" vowlen conslen totlen)
+      (if singing-debug
+          (format t "Vowlen: %f conslen: %f totlen: %f\n" vowlen conslen totlen))
       (if (< offset (/ syldur 2.0))
 	  (begin
             (set! syldur (- syldur offset))
-            (format t "Offset: %f\n" offset)))
-      (format t "Syldur: %f\n" syldur)
+            (if singing-debug
+                (format t "Offset: %f\n" offset))))
+      (if singing-debug
+          (format t "Syldur: %f\n" syldur))
       (if (> totlen syldur)
 	  ;; if the total length of the average durations in the syllable is
 	  ;; greater than the total desired duration of the syllable, stretch
@@ -347,7 +366,8 @@
                           (item.set_feat s 'end singing_global_time)))
                       (item.leafs (item.relation syl 'SylStructure))))))))
   (let ((restlen (car (syl->rest syl))))
-    (format t "restlen %l\n" restlen)
+    (if singing-debug
+        (format t "restlen %l\n" restlen))
     (if (> restlen 0)
         (let ((lastseg (item.daughtern (item.relation syl 'SylStructure)))
               (SIL (car (car (cdr (assoc 'silences (PhoneSet.description)))))))
@@ -369,7 +389,8 @@
       (if (equal? nil (item.prev seg))
           (item.set_feat seg 'end 0.0)
           (item.set_feat seg 'end (item.feat (item.prev seg) 'end)))
-      (format t "segment: %s end: %f\n" (item.name seg) (item.feat seg 'end))))
+      (if singing-debug
+          (format t "segment: %s end: %f\n" (item.name seg) (item.feat seg 'end)))))
   
 ;; returns the duration of a syllable (stored in its token)
 (define (syl->durations syl)
