@@ -12,8 +12,17 @@ process_xml () {
   local speedup="$3"
   local wave="${file%xml}wav"
   local tmpwave="$wave.tmp.$$"
+  local tmpxml="$file.tmp.$$"
+  local coding
 
-  trap "rm -f '$tmpwave'" EXIT
+  trap "rm -f '$tmpwave' '$tmpxml'" EXIT
+  if [ "$voice" = voice_czech_ph ]; then
+    coding=iso-8859-2
+  else
+    coding=iso-8859-1
+  fi
+  iconv -f utf-8 -t $coding -o "$tmpxml" "$file"
+  mv "$tmpxml" "$file"
   text2wave -eval "($voice)" -mode singing "$file" -o "$tmpwave"
   if [ -n "$speedup" ] && [ $speedup -ne 1 ]; then
     sox "$tmpwave" "$wave" speed $speedup
