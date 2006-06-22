@@ -122,7 +122,7 @@ lze obejít dvěma způsoby:
    Tím bude výstup snížen o dvě oktávy a zpomalen čtyřikrát.  Po vygenerování
    zvukového souboru lze tento přesamplovat příkazem
 
-     sox SOUBOR.wav PŘESAMPLOVANÝ.wav speed 4
+     sox SOUBOR.wav PŘESAMPLOVANÝ.wav 4
 
    Oproti prvnímu postupu se ve výsledku získá zpěv ve správné oktávě, výstup
    je však značně nekvalitní.
