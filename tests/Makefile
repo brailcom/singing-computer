@@ -11,7 +11,7 @@ all: default music
 	lilypond -o $(basename $@) $<
 
 %.wav: %.xml ../singing-mode.scm
-	text2wave -eval '(load "../singing-mode.scm")' -eval '(voice_kal_diphone)' -mode singing $< -o $@
+	text2wave -eval ../singing-mode.scm -eval '(voice_kal_diphone)' -mode singing $< -o $@
 
 %.result: %.xml %-ok.xml
 	-diff $+ >$@
