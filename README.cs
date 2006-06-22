@@ -98,11 +98,19 @@ lze přehrát libovolným přehrávačem zvukových souborů.
 
 * Problémy
 
-Současné verze Festivalu trpí dosud neopravenou chybou, která od určité výšky
-tónu způsobí pád Festivalu nebo vygenerování zpěvu nesprávné výšky.  Tuto chybu
-lze obejít dvěma způsoby:
+Současné verze Festivalu trpí dosud neopravenou chybou, která u tónů vyšších
+než 500 Hz způsobí pád Festivalu nebo vygenerování zpěvu nesprávné výšky.  Tuto
+chybu lze obejít následujícími způsoby:
 
-1. Snížením oktávy generovaného výstupu nastavením proměnné
+1. Aplikací záplaty `festival.patch' na Festival.  To je jediné spolehlivé
+   řešení.  Ve zdrojovém adresáři Festivalu proveďte
+
+     patch -p0 <.../singing-computer/festival.patch
+
+   a Festival překompilujte.  Pozor, Festival nelze zkompilovat s g++ 4.0 a
+   novějším, je potřeba použít starší verze g++.
+
+2. Snížením oktávy generovaného výstupu nastavením proměnné
    song:*base-octave*.  To je nutné provést ještě před prvním použitím příkazů
    \festival nebo \festivalsyl následujícím způsobem:
 
@@ -111,7 +119,7 @@ lze obejít dvěma způsoby:
    Implicitní hodnotou proměnné song:*base-octave* je 5, výše uvedené nastavení
    způsobí snížení výsledného zpěvu o dvě oktávy.
 
-2. Snížením výšky výstupu s jeho současným zpomalením a následným
+3. Snížením výšky výstupu s jeho současným zpomalením a následným
    přesamplováním na správnou výšku.  Tento postup je mírně složitější.
    Nejprve se musí provést snížení výšky a zpomalení výstupu před prvním
    použitím příkazů \festival nebo \festivalsyl v lilypondovém zdrojovém

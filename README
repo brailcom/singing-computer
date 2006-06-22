@@ -101,10 +101,18 @@ with any sound player.
 * Problems
 
 Current Festival versions contain a bug that causes Festival crashes or
-generating incorrect pitch values from certain pitch level above.  There are
-two ways to work around the bug:
+generating incorrect pitch values on pitch levels above 500 Hz.  You can
+work around the bug in the following ways:
 
-1. Lowering the octave of the generated output by setting the
+1. Applying the patch `festival.patch' on Festival.  This is the only well
+   working solution.  In the Festival source directory call the command
+
+     patch -p0 <.../singing-computer/festival.patch
+
+   and recompile Festival.  Note that Festival doesn't compile with g++ 4.0 and
+   later, you must use an older g++ version.
+
+2. Lowering the octave of the generated output by setting the
    song:*base-octave* LilyPond variable.  This is necessary to do before the
    first use of the \festival and \festivalsyl commands in the following way:
 
@@ -113,7 +121,7 @@ two ways to work around the bug:
    Implicit value of the song:*base-octave* variable is 5.  The setting above
    causes lowering the song pitch by 2 octaves.
 
-2. Lowering the pitch of the output together with slowing it down and then
+3. Lowering the pitch of the output together with slowing it down and then
    resampling it to the right pitch.  This way is somewhat more complicated.
    The first step is lowering the pitch and slowing down the rate before the
    first use of the \festival and \festivalsyl commands in the LilyPond input

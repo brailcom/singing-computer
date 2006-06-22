@@ -1,0 +1,11 @@
+--- src/modules/UniSyn/us_prosody.cc.orig	2006-06-22 14:07:41.000000000 +0200
++++ src/modules/UniSyn/us_prosody.cc	2006-06-22 12:37:00.000000000 +0200
+@@ -72,7 +72,7 @@
+     {
+ 	if (fz.a_no_check(i) < 0)
+ 	    fz.a_no_check(i) = 0;
+-	if (fz.a_no_check(i) > 500)
++	if (fz.a_no_check(i) > 5000)
+ 	    fz.a_no_check(i) = fz.a_no_check(i-1);
+ 	if (fz.a_no_check(i) > max)
+ 	    max = fz.a_no_check(i);
