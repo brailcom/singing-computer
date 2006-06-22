@@ -138,6 +138,9 @@ work around the bug in the following ways:
    This way you get the song in the right octave, but the result is of very low
    quality.
 
+Note that Festival is generally unable to produce good speech synthesis results
+of very high pitches.
+
 * Contact
 
 You can send questions, bug reports and other things you'd like to tell us to

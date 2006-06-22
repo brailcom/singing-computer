@@ -135,6 +135,9 @@ chybu lze obejít následujícími způsoby:
    Oproti prvnímu postupu se ve výsledku získá zpěv ve správné oktávě, výstup
    je však značně nekvalitní.
 
+Nezávisle na této chybě platí, že Festival není schopen produkovat kvalitní
+výsledek pro hlasy o velmi vysokých výškách.
+
 * Kontakt
 
 Dotazy, oznámení o chybách a jiné podněty lze zasílat do mailing listu
