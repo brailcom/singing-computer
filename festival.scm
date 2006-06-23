@@ -48,7 +48,7 @@
 (define song:*base-octave-shift* 0)
 
 ;; Iff true, enable a lot of debugging output
-(define song:*debug* #t)
+(define song:*debug* #f)
 
 
 ;;; LilyPond interface
