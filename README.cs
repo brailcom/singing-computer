@@ -77,17 +77,17 @@ Příklady použití příkazů \festival a \festivalsyl jsou v souborech tests
 Po zpracování vstupního souboru LilyPondem je příslušný XML soubor, nedojde-li
 k chybě, vygenerován.  Tento soubor je nutno následně zpracovat Festivalem pro
 vytvoření výsledného zvukového souboru určeného k přehrání.  Pro tuto operaci
-je k dispozici skript `synthesize.sh', který může být spuštěn některým
+je k dispozici skript `lilysong', který může být spuštěn některým
 z následujících způsobů:
 
-- synthesize.sh SOUBOR.xml [ KÓD-JAZYKA-NEBO-HLAS [ ZRYCHLENÍ ] ]
+- lilysong SOUBOR.xml [ KÓD-JAZYKA-NEBO-HLAS [ ZRYCHLENÍ ] ]
 
   Vytvoří zvukový soubor odpovídající souboru SOUBOR.xml.  Jako druhý parametr
   volání je zadán kód jazyka (`en' nebo `cs') nebo přímo požadovaný festivalový
   hlas (např. `voice_kal_diphone' nebo `voice_czech_ph').  Třetím nepovinným
   parametrem je požadované zrychlení hlasu (viz odstavec „Problémy“ níže).
 
-- synthesize.sh SOUBOR.ly [ KÓD-JAZYKA-NEBO-HLAS ]
+- lilysong SOUBOR.ly [ KÓD-JAZYKA-NEBO-HLAS ]
 
   Provede zpracováním lilypondem i Festivalem současně, případné zrychlení je
   odvozeno z obsahu zdrojového souboru.  Funguje pouze v případě, že se ze

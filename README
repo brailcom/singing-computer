@@ -77,10 +77,10 @@ Look into tests/*.ly files for some basic examples of using the commands.
 When the input *.ly file is processed with LilyPond, the corresponding XML file
 (or files) is created (unless an error occurs).  This file must then be
 processed with Festival to create the resulting sound file.  You can do that
-with the help of the `synthesize.sh' script that can be called in one of the
+with the help of the `lilysong' script that can be called in one of the
 following ways:
 
-- synthesize.sh FILE.xml [ LANGUAGE-CODE-OR-VOICE-NAME [ SPEEDUP ] ]
+- lilysong FILE.xml [ LANGUAGE-CODE-OR-VOICE-NAME [ SPEEDUP ] ]
 
   A sound file corresponding to the FILE.xml is created.  The second argument
   in the call is given the language code (`en' and `cs' are supported) or
@@ -88,11 +88,11 @@ following ways:
   `voice_kal_diphone' or `voice_czech_ph').  The third optional argument is
   speedup of the resulting sound (see the "Problems" section below).
 
-- synthesize.sh FILE.ly [ LANGUAGE-CODE-OR-VOICE-NAME ]
+- lilysong FILE.ly [ LANGUAGE-CODE-OR-VOICE-NAME ]
 
   The input FILE.ly is processed with both LilyPond and Festival.  Contingent
   speedup is automatically detected from the input file.  This form of
-  synthesize.sh call works only when there is single use of the \festival and
+  `lilysong' call works only when there is single use of the \festival and
   \festivalsyl commands in the input file.
 
 In both cases the resulting sound file FILE.wav gets created that can be played
