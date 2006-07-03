@@ -80,13 +80,15 @@ processed with Festival to create the resulting sound file.  You can do that
 with the help of the `lilysong' script that can be called in one of the
 following ways:
 
-- lilysong FILE.xml [ LANGUAGE-CODE-OR-VOICE-NAME [ SPEEDUP ] ]
+- lilysong [ -p PLAY-PROGRAM ] FILE.xml [ LANGUAGE-CODE-OR-VOICE-NAME [ SPEEDUP ] ]
 
-  A sound file corresponding to the FILE.xml is created.  The second argument
-  in the call is given the language code (`en' and `cs' are supported) or
-  directly the Festival voice selection function name (such as
-  `voice_kal_diphone' or `voice_czech_ph').  The third optional argument is
-  speedup of the resulting sound (see the "Problems" section below).
+  A sound file corresponding to the FILE.xml is created.  The
+  LANGUAGE-CODE-OR-VOICE-NAME argument in the call is given the language code
+  (`en' and `cs' are supported) or directly the Festival voice selection
+  function name (such as `voice_kal_diphone' or `voice_czech_ph').  The SPEEDUP
+  optional argument is speedup of the resulting sound (see the "Problems"
+  section below).  If the `-p' option is given, the resulting WAV file is
+  played using the given program.
 
 - lilysong FILE.ly [ LANGUAGE-CODE-OR-VOICE-NAME ]
 

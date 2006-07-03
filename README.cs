@@ -80,12 +80,14 @@ vytvoření výsledného zvukového souboru určeného k přehrání.  Pro tuto
 je k dispozici skript `lilysong', který může být spuštěn některým
 z následujících způsobů:
 
-- lilysong SOUBOR.xml [ KÓD-JAZYKA-NEBO-HLAS [ ZRYCHLENÍ ] ]
+- lilysong [ -p PŘEHRÁVACÍ-PROGRAM ] SOUBOR.xml [ KÓD-JAZYKA-NEBO-HLAS [ ZRYCHLENÍ ] ]
 
-  Vytvoří zvukový soubor odpovídající souboru SOUBOR.xml.  Jako druhý parametr
-  volání je zadán kód jazyka (`en' nebo `cs') nebo přímo požadovaný festivalový
-  hlas (např. `voice_kal_diphone' nebo `voice_czech_ph').  Třetím nepovinným
-  parametrem je požadované zrychlení hlasu (viz odstavec „Problémy“ níže).
+  Vytvoří zvukový soubor odpovídající souboru SOUBOR.xml.  Jako parametr
+  KÓD-JAZYKA-NEBO-HLAS volání je zadán kód jazyka (`en' nebo `cs') nebo přímo
+  požadovaný festivalový hlas (např. `voice_kal_diphone' nebo
+  `voice_czech_ph').  Nepovinným parametrem ZRYCHLENÍ je požadované zrychlení
+  hlasu (viz odstavec „Problémy“ níže).  Je-li zadána volba `-p', je výsledný
+  WAV soubor přehrán zadaným programem.
 
 - lilysong SOUBOR.ly [ KÓD-JAZYKA-NEBO-HLAS ]
 
