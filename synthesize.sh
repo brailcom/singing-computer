@@ -22,8 +22,7 @@ process_xml () {
     coding=iso-8859-1
   fi
   iconv -f utf-8 -t $coding -o "$tmpxml" "$file"
-  mv "$tmpxml" "$file"
-  text2wave -eval "($voice)" -mode singing "$file" -o "$tmpwave"
+  text2wave -eval "($voice)" -mode singing "$tmpxml" -o "$tmpwave"
   if [ -n "$speedup" ] && [ $speedup -ne 1 ]; then
     sox "$tmpwave" "$wave" speed $speedup
   else
