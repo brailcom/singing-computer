@@ -45,6 +45,9 @@ following installation steps:
 
 - Install the festival.scm file to the LilyPond scm/ directory.
 
+If you want to use song synthesis support in Emacs, copy the file
+lilypond-mode.el into the directory containing other LilyPond *.el files.
+
 * Usage
 
 Singing Computer defines two new LilyPond commands: \festival and \festivalsyl.
@@ -99,6 +102,10 @@ following ways:
 
 In both cases the resulting sound file FILE.wav gets created that can be played
 with any sound player.
+
+The Emacs suppont adds new commands for singing the current \festival or
+\festivalsyl contents and for singing contents of all the commands in the
+current buffer into the LilyPond Emacs menu.
 
 * Problems
 

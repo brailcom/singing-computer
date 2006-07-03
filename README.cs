@@ -45,6 +45,9 @@ singing-computer* je ještě nutné provést následující kroky:
 
 - Soubor festival.scm umístit mezi ostatní *.scm soubory instalace LilyPondu.
 
+Pokud chcete používat podporu pro syntézu zpěvu v Emacsu, zkopírujte ještě
+soubor lilypond-mode.el mezi ostatní *.el soubory instalace LilyPondu.
+
 * Použití
 
 Zpívající počítač definuje dva nové lilypondové příkaz \festival a
@@ -97,6 +100,10 @@ z následujících způsobů:
 
 Skript v obou případech vyrobí výsledný zvukový soubor SOUBOR.wav, který pak
 lze přehrát libovolným přehrávačem zvukových souborů.
+
+Podpora v Emacsu přidá do menu příkazy pro zazpívání obsahu aktuálního příkazu
+\festival nebo \festivalsyl a pro přezpívání obsahu všech těchto příkazů
+v aktuálním bufferu.
 
 * Problémy
 
