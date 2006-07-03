@@ -68,14 +68,17 @@ If there is none, return nil."
     (or (LilyPond-string-find-song 'backward)
         (LilyPond-string-find-song 'forward))))
 
-(defun LilyPond-all-songs ()
-  "Return XML file names corresponding to the songs of the current document.
-If there are none, return an empty string."
+(defun LilyPond-all-songs (&optional limit-to-region)
+  "Return list of XML file names of the song commands in the current document.
+If there are none, return an empty list.
+If LIMIT-TO-REGION is non-nil, look for the commands in the current region
+only."
   (let ((result '())
         (current nil))
     (save-excursion
       (save-restriction
-        (when (eq LilyPond-command-current 'LilyPond-command-region)
+        (when (or limit-to-region
+                  (eq LilyPond-command-current 'LilyPond-command-region))
           (narrow-to-region (mark) (point)))
         (goto-char (point-min))
         (while (setq current (LilyPond-string-find-song 'forward))
@@ -147,19 +150,38 @@ If there are none, return an empty string."
   (interactive)
   (LilyPond-command-sing-list (LilyPond-all-songs)))
 
+(defun LilyPond-command-sing-parallel (beg end)
+  "Play the sounds of the current region in parallel."
+  (interactive "r")
+  (LilyPond-update-language)
+  (let* ((songs (LilyPond-all-songs t))
+         (wav-files (mapcar 'LilyPond-xml->wav songs))
+         (all-files (append songs wav-files)))
+    (when (or (LilyPond-song-update-needed (buffer-file-name) all-files)
+              (LilyPond-song-update-needed (LilyPond-get-master-file) all-files))
+      (error "Cannot play, WAV files must be (re)build"))
+    (mapc 'LilyPond-play-song wav-files))
+  (setq LilyPond-last-language LilyPond-language))
+
 (defun LilyPond-command-sing (&optional all)
   "Sing song arround the current point.
 If invoked with a prefix argument, sing all songs of the current buffer."
   (interactive "P")
-  (if all
-      (LilyPond-command-sing-all)
-    (LilyPond-command-sing-current)))
+  (cond
+   ((not all)
+    (LilyPond-command-sing-current))
+   ((listp all)
+    (LilyPond-command-sing-all))
+   (t
+    (LilyPond-command-sing-parallel))))
 
 
 (define-key LilyPond-mode-map "\C-c\C-a" 'LilyPond-command-sing)
 
 (easy-menu-add-item LilyPond-command-menu nil
   ["Sing" LilyPond-command-sing-current t])
+(easy-menu-add-item LilyPond-command-menu nil
+  ["Sing Parallel" LilyPond-command-sing-parallel t])
 (easy-menu-add-item LilyPond-command-menu nil
   ["Sing All" LilyPond-command-sing-all t])
 
