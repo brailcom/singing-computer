@@ -31,7 +31,7 @@ process_xml () {
   fi
   echo "$wave created."
   if [ -n "$play" ]; then
-    "$play" "$wave"
+    "$play" "$wave" >/dev/null
   fi
 }
 
