@@ -109,32 +109,33 @@ only."
 (defun LilyPond-play-song (song)
   (call-process LilyPond-play-command nil 0 nil (LilyPond-xml->wav song)))
 
-(defun LilyPond-command-sing-list (songs)
+(defun LilyPond-sing-list (songs &optional parallel)
   (LilyPond-update-language)
-  (if (or (LilyPond-song-update-needed (buffer-file-name) songs)
-          (LilyPond-song-update-needed (LilyPond-get-master-file) songs))
-      ;; We must call both LilyPond processing and synthesis here to ensure
-      ;; sequential execution of these actions.
-      (compile
-       (format "%s %s && for f in %s; do %s -p %s $f %s; done"
-               LilyPond-lilypond-command
-               (LilyPond-get-master-file)
-               (mapconcat 'identity songs " ")
-               LilyPond-synthesize-command
-               LilyPond-play-command
-               LilyPond-language))
-    (compile (mapconcat #'(lambda (song)
-                            (let ((wav-file (LilyPond-xml->wav song)))
-                              (if (or (file-newer-than-file-p song wav-file)
-                                      (not (equal LilyPond-language LilyPond-last-language)))
-                                  (format "%s -p %s %s %s"
-                                          LilyPond-synthesize-command
-                                          LilyPond-play-command
-                                          song
-                                          (or LilyPond-language ""))
-                                (format "%s %s" LilyPond-play-command wav-file))))
-                        songs
-                        "; ")))
+  (let ((commands nil))
+    (when (or (LilyPond-song-update-needed (buffer-file-name) songs)
+              (LilyPond-song-update-needed (LilyPond-get-master-file) songs))
+      (push (format "%s %s" LilyPond-lilypond-command
+                    (LilyPond-get-master-file))
+            commands))
+    (mapc #'(lambda (song)
+              (let ((wav-file (LilyPond-xml->wav song)))
+                (when (or (not (file-exists-p song))
+                          (file-newer-than-file-p song wav-file)
+                          (not (equal LilyPond-language LilyPond-last-language)))
+                  (push (format "%s %s %s"
+                                LilyPond-synthesize-command
+                                song
+                                (or LilyPond-language ""))
+                        commands))))
+          songs)
+    (let ((play-commands (mapcar #'(lambda (song)
+                                     (format "%s %s" LilyPond-play-command
+                                             (LilyPond-xml->wav song)))
+                                 songs)))
+      (if parallel
+          (push (mapconcat 'identity play-commands " & ") commands)
+        (setq commands (append (nreverse play-commands) commands))))
+    (compile (mapconcat 'identity (nreverse commands) " && ")))
   (setq LilyPond-last-language LilyPond-language))
 
 (defun LilyPond-command-sing-current ()
@@ -142,26 +143,18 @@ only."
   (interactive)
   (let ((song (LilyPond-current-song)))
     (if song
-        (LilyPond-command-sing-list (list song))
+        (LilyPond-sing-list (list song))
       (error "No song found"))))
 
 (defun LilyPond-command-sing-all ()
   "Sing all songs of the current buffer."
   (interactive)
-  (LilyPond-command-sing-list (LilyPond-all-songs)))
+  (LilyPond-sing-list (LilyPond-all-songs)))
 
 (defun LilyPond-command-sing-parallel (beg end)
   "Play the sounds of the current region in parallel."
   (interactive "r")
-  (LilyPond-update-language)
-  (let* ((songs (LilyPond-all-songs t))
-         (wav-files (mapcar 'LilyPond-xml->wav songs))
-         (all-files (append songs wav-files)))
-    (when (or (LilyPond-song-update-needed (buffer-file-name) all-files)
-              (LilyPond-song-update-needed (LilyPond-get-master-file) all-files))
-      (error "Cannot play, WAV files must be (re)build"))
-    (mapc 'LilyPond-play-song wav-files))
-  (setq LilyPond-last-language LilyPond-language))
+  (LilyPond-sing-list (LilyPond-all-songs t) t))
 
 (defun LilyPond-command-sing (&optional all)
   "Sing song arround the current point.
