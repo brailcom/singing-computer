@@ -45,6 +45,8 @@ following installation steps:
 
 - Install the festival.scm file to the LilyPond scm/ directory.
 
+- Install the `lilysong' file somewhere to your $PATH, e.g. /usr/local/bin/.
+
 If you want to use song synthesis support in Emacs, copy the file
 lilypond-mode.el into the directory containing other LilyPond *.el files.
 

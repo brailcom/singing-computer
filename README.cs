@@ -45,6 +45,8 @@ singing-computer* je ještě nutné provést následující kroky:
 
 - Soubor festival.scm umístit mezi ostatní *.scm soubory instalace LilyPondu.
 
+- Soubor `lilysong' umístěte do některé z cest v $PATH, např. /usr/local/bin/.
+
 Pokud chcete používat podporu pro syntézu zpěvu v Emacsu, zkopírujte ještě
 soubor lilypond-mode.el mezi ostatní *.el soubory instalace LilyPondu.
 
