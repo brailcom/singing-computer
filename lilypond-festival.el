@@ -39,6 +39,11 @@
   :group 'LilyPond
   :type 'string)
 
+(defcustom LilyPond-mix-command "soxmix"
+  "Command used to mix several WAV files into a single file."
+  :group 'LilyPond
+  :type 'string)
+
 
 (defvar LilyPond-language nil)
 (make-variable-buffer-local 'LilyPond-language)
@@ -128,13 +133,21 @@ only."
                                 (or LilyPond-language ""))
                         commands))))
           songs)
-    (let ((play-commands (mapcar #'(lambda (song)
-                                     (format "%s %s" LilyPond-play-command
-                                             (LilyPond-xml->wav song)))
-                                 songs)))
-      (if parallel
-          (push (mapconcat 'identity play-commands " & ") commands)
-        (setq commands (append (nreverse play-commands) commands))))
+    (let ((wav-files (mapcar 'LilyPond-xml->wav songs)))
+      (if (eq parallel 'mix)
+          (push (format "%s %s -t wav - | %s -t wav -"
+                        LilyPond-mix-command
+                        (mapconcat 'identity wav-files " ")
+                        LilyPond-play-command)
+                commands)
+        (let ((play-commands (mapcar #'(lambda (wav)
+                                         (format "%s %s"
+                                                 LilyPond-play-command
+                                                 wav))
+                                     wav-files)))
+          (if parallel
+              (push (mapconcat 'identity play-commands " & ") commands)
+            (setq commands (append (nreverse play-commands) commands))))))
     (compile (mapconcat 'identity (nreverse commands) " && ")))
   (setq LilyPond-last-language LilyPond-language))
 
@@ -154,7 +167,7 @@ only."
 (defun LilyPond-command-sing-parallel (beg end)
   "Play the sounds of the current region in parallel."
   (interactive "r")
-  (LilyPond-sing-list (LilyPond-all-songs t) t))
+  (LilyPond-sing-list (LilyPond-all-songs t) 'mix))
 
 (defun LilyPond-command-sing (&optional all)
   "Sing song arround the current point.
