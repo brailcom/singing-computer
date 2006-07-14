@@ -162,12 +162,18 @@ only."
 (defun LilyPond-command-sing-all ()
   "Sing all songs of the current buffer."
   (interactive)
-  (LilyPond-sing-list (LilyPond-all-songs)))
+  (let ((songs (LilyPond-all-songs)))
+    (if songs
+        (LilyPond-sing-list songs)
+      (error "No song found in the current buffer"))))
 
 (defun LilyPond-command-sing-parallel (beg end)
   "Play the sounds of the current region in parallel."
   (interactive "r")
-  (LilyPond-sing-list (LilyPond-all-songs t) 'mix))
+  (let ((songs (LilyPond-all-songs t)))
+    (if songs
+        (LilyPond-sing-list songs (if (cdr songs) 'mix nil))
+      (error "No song found in the current region"))))
 
 (defun LilyPond-command-sing (&optional all)
   "Sing song arround the current point.
