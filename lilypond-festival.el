@@ -116,17 +116,21 @@ only."
 
 (defun LilyPond-sing-list (songs &optional parallel)
   (LilyPond-update-language)
-  (let ((commands nil))
-    (when (or (LilyPond-song-update-needed (buffer-file-name) songs)
-              (LilyPond-song-update-needed (LilyPond-get-master-file) songs))
+  (let ((commands nil)
+        (update-needed (or (LilyPond-song-update-needed
+                            (buffer-file-name) songs)
+                           (LilyPond-song-update-needed
+                            (LilyPond-get-master-file) songs))))
+    (when update-needed
       (push (format "%s %s" LilyPond-lilypond-command
                     (LilyPond-get-master-file))
             commands))
     (mapc #'(lambda (song)
               (let ((wav-file (LilyPond-xml->wav song)))
-                (when (or (not (file-exists-p song))
+                (when (or update-needed
                           (file-newer-than-file-p song wav-file)
-                          (not (equal LilyPond-language LilyPond-last-language)))
+                          (not (equal LilyPond-language
+                                      LilyPond-last-language)))
                   (push (format "%s %s %s"
                                 LilyPond-synthesize-command
                                 song
