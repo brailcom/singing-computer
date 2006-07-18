@@ -59,7 +59,7 @@
   "Find XML file name of the nearest Festival command in the given DIRECTION.
 DIRECTION is one of the symbols `forward' or `backward'.
 If no Festival command is found in the current buffer, return nil.
-The cursor is left at the position where the command occurrence was found."
+The point is left at the position where the command occurrence was found."
   (when (funcall (if (eq direction 'backward)
                      're-search-backward
                    're-search-forward)
@@ -70,8 +70,8 @@ The cursor is left at the position where the command occurrence was found."
   "Return the XML file name corresponding to the song around current point.
 If there is none, return nil."
   (save-excursion
-    (or (LilyPond-string-find-song 'backward)
-        (LilyPond-string-find-song 'forward))))
+    (or (progn (end-of-line) (LilyPond-string-find-song 'backward))
+        (progn (beginning-of-line) (LilyPond-string-find-song 'forward)))))
 
 (defun LilyPond-all-songs (&optional limit-to-region)
   "Return list of XML file names of the song commands in the current document.
