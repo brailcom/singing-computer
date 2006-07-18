@@ -84,11 +84,43 @@ only."
       (save-restriction
         (when (or limit-to-region
                   (eq LilyPond-command-current 'LilyPond-command-region))
-          (narrow-to-region (mark) (point)))
+          (narrow-to-region (or (mark) (point)) (point)))
         (goto-char (point-min))
         (while (setq current (LilyPond-string-find-song 'forward))
           (setq result (cons current result)))))
     (nreverse result)))
+
+(defvar LilyPond-song-list-history nil)
+
+(defvar LilyPond-default-songs nil)
+
+(defun LilyPond-song-list ()
+  (let* ((all-songs (LilyPond-all-songs))
+         (available-songs all-songs)
+         (initial-songs (or LilyPond-default-songs (LilyPond-all-songs t)))
+         (last-input (completing-read
+                      (format "Sing file%s: "
+                              (if initial-songs
+                                  (format " (default `%s')"
+                                          (mapconcat 'identity initial-songs
+                                                     ", "))
+                                ""))
+                      all-songs
+                      nil t nil
+                      'LilyPond-song-list-history)))
+    (if (equal last-input "")
+        initial-songs
+      (let ((song-list '())
+            default-input)
+        (while (not (equal last-input ""))
+          (push last-input song-list)
+          (setq default-input (second (member last-input available-songs)))
+          (setq available-songs (remove last-input available-songs))
+          (setq last-input (completing-read "Sing file: "
+                                            available-songs
+                                            nil t default-input
+                                            'LilyPond-song-list-history)))
+        (setq LilyPond-default-songs (nreverse song-list))))))
 
 (defun LilyPond-xml->wav (filename)
   (format "%s.wav" (file-name-sans-extension filename)))
@@ -171,13 +203,13 @@ only."
         (LilyPond-sing-list songs)
       (error "No song found in the current buffer"))))
 
-(defun LilyPond-command-sing-parallel (beg end)
-  "Play the sounds of the current region in parallel."
-  (interactive "r")
-  (let ((songs (LilyPond-all-songs t)))
+(defun LilyPond-command-sing-parallel ()
+  "Play selected songs in parallel."
+  (interactive)
+  (let ((songs (LilyPond-song-list)))
     (if songs
         (LilyPond-sing-list songs (if (cdr songs) 'mix nil))
-      (error "No song found in the current region"))))
+      (error "No songs given"))))
 
 (defun LilyPond-command-sing (&optional all)
   "Sing song arround the current point.
