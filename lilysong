@@ -50,6 +50,10 @@ process_ly () {
   process_xml "$xmlfile" "$voice" $speedup
 }
 
+if [ "$1" = --help ]; then
+  usage
+fi
+
 play=""
 if [ "$1" = "-p" ]; then
   shift
