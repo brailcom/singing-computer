@@ -64,7 +64,7 @@ The cursor is left at the position where the command occurrence was found."
                      're-search-backward
                    're-search-forward)
                  LilyPond-festival-command-regexp nil t)
-    (match-string 2)))
+    (match-string-no-properties 2)))
 
 (defun LilyPond-current-song ()
   "Return the XML file name corresponding to the song around current point.
