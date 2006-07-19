@@ -48,7 +48,7 @@ following installation steps:
 - Install the `lilysong' file somewhere to your $PATH, e.g. /usr/local/bin/.
 
 If you want to use song synthesis support in Emacs, copy the file
-lilypond-mode.el into the directory containing other LilyPond *.el files.
+lilypond-festival.el into the directory containing other LilyPond *.el files.
 
 * Usage
 
@@ -150,7 +150,7 @@ work around the bug in the following ways:
    quality.
 
 Note that Festival is generally unable to produce good speech synthesis results
-of very high pitches.
+of very high pitches with the currently available diphone databases.
 
 * Contact
 
