@@ -4,7 +4,7 @@ Zpívající počítač (singing-computer)
 Zpívající počítač je program umožňující přezpívat notový zápis (doplněný
 textem) zapsaný v systému sazby not LilyPond.  Nástroj je určen především pro
 zrakově postižené uživatele LilyPondu, kterým umožňuje kontrolu vzájemné pozice
-textu a not.  Toho je dosaženo vložením nově definovaného lilypondového příkazy
+textu a not.  Toho je dosaženo vložením nově definovaného lilypondového příkazu
 do lilypondového zápisu, který způsobí vygenerování definičního souboru zpěvu
 pro systém syntézy řeči Festival, s pomocí kterého se následně provede syntéza
 zvukového souboru.
@@ -48,13 +48,13 @@ singing-computer* je ještě nutné provést následující kroky:
 - Soubor `lilysong' umístěte do některé z cest v $PATH, např. /usr/local/bin/.
 
 Pokud chcete používat podporu pro syntézu zpěvu v Emacsu, zkopírujte ještě
-soubor lilypond-mode.el mezi ostatní *.el soubory instalace LilyPondu.
+soubor lilypond-festival.el mezi ostatní *.el soubory instalace LilyPondu.
 
 * Použití
 
-Zpívající počítač definuje dva nové lilypondové příkaz \festival a
-\festivalsyl, které fungují podobně jako příkaz \midi.  Příkazy mají
-následující podobu:
+Zpívající počítač definuje dva nové lilypondové příkazy \festival a
+\festivalsyl, které fungují podobně jako příkaz \midi. Příkazy mají následující
+podobu:
 
   \include "festival.ly"
   \festival #"SOUBOR.xml" { \tempo 4 = 100 }
@@ -146,8 +146,9 @@ chybu lze obejít následujícími způsoby:
    Oproti prvnímu postupu se ve výsledku získá zpěv ve správné oktávě, výstup
    je však značně nekvalitní.
 
-Nezávisle na této chybě platí, že Festival není schopen produkovat kvalitní
-výsledek pro hlasy o velmi vysokých výškách.
+Nezávisle na této chybě platí, že Festival není schopen s momentálně dostupnými
+difonovými databázemi produkovat kvalitní výsledek pro hlasy o velmi vysokých
+výškách.
 
 * Kontakt
 
