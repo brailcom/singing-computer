@@ -194,7 +194,9 @@ only."
                                                  wav))
                                      wav-files)))
           (if parallel
-              (push (mapconcat 'identity play-commands " & ") commands)
+              (push (format "{ %s; } >/dev/null"
+                            (mapconcat 'identity play-commands " & "))
+                    commands)
             (setq commands (append (nreverse play-commands) commands))))))
     (compile (mapconcat 'identity (nreverse commands) " && ")))
   (setq LilyPond-last-language LilyPond-language))
