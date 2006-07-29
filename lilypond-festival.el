@@ -39,13 +39,8 @@
   :group 'LilyPond
   :type 'string)
 
-(defcustom LilyPond-midi->wav-command "timidity -Ow -o %s %s"
+(defcustom LilyPond-midi->wav-command "timidity -Ow -o"
   "Command used to make a WAV file from a MIDI file."
-  :group 'LilyPond
-  :type 'string)
-
-(defcustom LilyPond-mix-command "soxmix"
-  "Command used to mix several WAV files into a single file."
   :group 'LilyPond
   :type 'string)
 
@@ -130,15 +125,6 @@ only."
 (defun LilyPond-file->wav (filename)
   (format "%s.wav" (file-name-sans-extension filename)))
 
-(defun LilyPond-song-update-needed (source results)
-  (let ((update-needed nil))
-    (while (and (not update-needed)
-                results)
-      (if (file-newer-than-file-p source (car results))
-          (setq update-needed t)
-        (setq results (cdr results))))
-    update-needed))
-
 (defun LilyPond-change-language ()
   (interactive)
   (setq LilyPond-language
@@ -151,59 +137,81 @@ only."
 (defun LilyPond-play-song (song)
   (call-process LilyPond-play-command nil 0 nil (LilyPond-file->wav song)))
 
-(defun LilyPond-sing-list (songs &optional parallel midi-files)
+(defstruct LilyPond-song-compilation-data
+  command
+  makefile
+  buffer
+  songs
+  midi
+  in-parallel)
+(defvar LilyPond-song-compilation-data nil)
+(defun LilyPond-sing-list (songs &optional in-parallel midi-files)
   (LilyPond-update-language)
-  (let ((commands nil)
-        (update-needed (or (LilyPond-song-update-needed
-                            (buffer-file-name) songs)
-                           (LilyPond-song-update-needed
-                            (LilyPond-get-master-file) songs)
-                           (LilyPond-song-update-needed
-                            (buffer-file-name) midi-files)
-                           (LilyPond-song-update-needed
-                            (LilyPond-get-master-file) midi-files))))
-    (when update-needed
-      (push (format "%s %s" LilyPond-lilypond-command
-                    (LilyPond-get-master-file))
-            commands))
-    (mapc #'(lambda (song)
-              (let ((wav-file (LilyPond-file->wav song)))
-                (when (or update-needed
-                          (file-newer-than-file-p song wav-file)
-                          (not (equal LilyPond-language
-                                      LilyPond-last-language)))
-                  (push (format "%s %s %s"
-                                LilyPond-synthesize-command
-                                song
-                                (or LilyPond-language ""))
-                        commands))))
-          songs)
-    (mapc #'(lambda (midi)
-              (let ((wav-file (LilyPond-file->wav midi)))
-                (when (or update-needed
-                          (file-newer-than-file-p midi wav-file))
-                  (push (format LilyPond-midi->wav-command wav-file midi)
-                        commands))))
-          midi-files)
-    (let ((wav-files (mapcar 'LilyPond-file->wav (append songs midi-files))))
-      (if (and (eq parallel 'mix) (not midi-files) (cdr wav-files))
-          (push (format "%s %s -t wav - | %s -t wav -"
-                        LilyPond-mix-command
-                        (mapconcat 'identity wav-files " ")
-                        LilyPond-play-command)
-                commands)
-        (let ((play-commands (mapcar #'(lambda (wav)
-                                         (format "%s %s"
-                                                 LilyPond-play-command
-                                                 wav))
-                                     wav-files)))
-          (if parallel
-              (push (format "{ %s; } >/dev/null"
-                            (mapconcat 'identity play-commands " & "))
-                    commands)
-            (setq commands (append (nreverse play-commands) commands))))))
-    (compile (mapconcat 'identity (nreverse commands) " && ")))
-  (setq LilyPond-last-language LilyPond-language))
+  (add-to-list 'compilation-finish-functions 'LilyPond-song-after-compilation)
+  (let* ((makefile (LilyPond-song-makefile (current-buffer) songs midi-files))
+         (command (format "make -f %s" makefile)))
+    (setq LilyPond-song-compilation-data
+          (make-LilyPond-song-compilation-data
+           :command command
+           :makefile makefile
+           :buffer (current-buffer)
+           :songs songs
+           :midi midi-files
+           :in-parallel in-parallel))
+    (if (LilyPond-song-up-to-date makefile)
+        (LilyPond-song-handle-files LilyPond-song-compilation-data)
+      (compile command))))
+
+(defun LilyPond-song-up-to-date (makefile)
+  (equal (call-process "make" nil nil nil "-f" makefile "-q") 0))
+
+(defun LilyPond-song-makefile (buffer songs midi-files)
+  (let ((temp-file (make-temp-file "Makefile.lilysong-el"))
+        (language LilyPond-language))
+    (with-temp-file temp-file
+      (let ((master-file (save-excursion
+                           (set-buffer buffer)
+                           (LilyPond-get-master-file)))
+            (lilyfiles (append songs midi-files)))
+        (insert "all:")
+        (dolist (f (mapcar 'LilyPond-file->wav lilyfiles))
+          (insert " " f))
+        (insert "\n")
+        (when lilyfiles
+          (dolist (f lilyfiles)
+            (insert f " "))
+          (insert ": " master-file "\n")
+          (insert "\t" LilyPond-lilypond-command " " master-file "\n")
+          (dolist (f songs)
+            (insert (LilyPond-file->wav f) ": " f "\n")
+            (insert "\t" LilyPond-synthesize-command " $< " (or language "") "\n"))
+          (dolist (f midi-files)
+            (insert (LilyPond-file->wav f) ": " f "\n")
+            (insert "\t" LilyPond-midi->wav-command " "
+                    (LilyPond-file->wav f) " " f "\n")))))
+    temp-file))
+
+(defun LilyPond-song-after-compilation (buffer message)
+  (let ((data LilyPond-song-compilation-data))
+    (when (and data
+               (equal compile-command
+                      (LilyPond-song-compilation-data-command data))
+               (LilyPond-song-up-to-date (LilyPond-song-compilation-data-makefile data)))
+      (LilyPond-song-handle-files data))))
+
+(defun LilyPond-song-handle-files (data)
+  (delete-file (LilyPond-song-compilation-data-makefile data))
+  (setq LilyPond-last-language LilyPond-language)
+  (LilyPond-sing-files (LilyPond-song-compilation-data-in-parallel data)
+                       (LilyPond-song-compilation-data-songs data)
+                       (LilyPond-song-compilation-data-midi data)))
+  
+(defun LilyPond-sing-files (in-parallel songs midi-files)
+  (let ((files (mapcar 'LilyPond-file->wav (append songs midi-files))))
+    (if in-parallel
+        (dolist (f files)
+          (start-process "lilysong-el" nil LilyPond-play-command f))
+      (apply 'start-process "lilysong-el" nil LilyPond-play-command files))))
 
 (defun LilyPond-command-sing-current ()
   "Sing song around the current point."
@@ -228,7 +236,7 @@ with singing."
   (interactive)
   (let ((songs (LilyPond-song-list)))
     (if songs
-        (LilyPond-sing-list songs 'mix midi-files)
+        (LilyPond-sing-list songs t midi-files)
       (error "No songs given"))))
 
 (defun LilyPond-command-sing-play-current-midi ()
@@ -246,7 +254,7 @@ with singing."
       (setq midi-string (match-string 2 midi-string)))
     (let ((songs (LilyPond-all-songs)))
       (if songs
-          (LilyPond-sing-list songs 'mix (nreverse midi-files))
+          (LilyPond-sing-list songs t (nreverse midi-files))
         (error "No songs found")))))
 
 (defun LilyPond-command-sing (&optional all)
