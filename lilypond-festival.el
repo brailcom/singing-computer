@@ -92,8 +92,10 @@ only."
     (nreverse result)))
 
 (defvar LilyPond-song-list-history nil)
+(make-variable-buffer-local 'LilyPond-song-list-history)
 
 (defvar LilyPond-default-songs nil)
+(make-variable-buffer-local 'LilyPond-default-songs)
 
 (defun LilyPond-song-list ()
   (let* ((all-songs (LilyPond-all-songs))
