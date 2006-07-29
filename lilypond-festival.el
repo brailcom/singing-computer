@@ -29,13 +29,15 @@
 (require 'cl)
 (require 'lilypond-mode)
 
+(ignore-errors (require 'ecasound))
+
 
 (defcustom LilyPond-synthesize-command "lilysong"
   "Command used to sing LilyPond files."
   :group 'LilyPond
   :type 'string)
 
-(defcustom LilyPond-play-command "play"
+(defcustom LilyPond-play-command (or (executable-find "ecaplay") "play")
   "Command used to play WAV files."
   :group 'LilyPond
   :type 'string)
@@ -44,6 +46,13 @@
   "Command used to make a WAV file from a MIDI file."
   :group 'LilyPond
   :type 'string)
+
+(defcustom LilyPond-use-ecasound (and (featurep 'ecasound)
+                                      (executable-find "ecasound")
+                                      t)
+  "If non-nil, use ecasound for mixing and playing songs."
+  :group 'LilyPond
+  :type 'boolean)
 
 
 (defvar LilyPond-language nil)
@@ -125,8 +134,14 @@ only."
                                             'LilyPond-song-list-history)))
         (setq LilyPond-default-songs (nreverse song-list))))))
 
-(defun LilyPond-file->wav (filename)
-  (format "%s.wav" (file-name-sans-extension filename)))
+(defun LilyPond-file->wav (filename &optional extension)
+  (format "%s.%s" (if (string-match "\\.midi$" filename)
+                      filename
+                    (file-name-sans-extension filename))
+          (or extension "wav")))
+
+(defun LilyPond-file->ewf (filename)
+  (LilyPond-file->wav filename "ewf"))
 
 (defun LilyPond-change-language ()
   (interactive)
@@ -137,8 +152,8 @@ only."
   (unless LilyPond-language
     (LilyPond-change-language)))
 
-(defun LilyPond-play-song (song)
-  (call-process LilyPond-play-command nil 0 nil (LilyPond-file->wav song)))
+(defun LilyPond-play-files (files)
+  (apply 'start-process "lilysong-el" nil LilyPond-play-command files))
 
 (defstruct LilyPond-song-compilation-data
   command
@@ -177,7 +192,7 @@ only."
                            (LilyPond-get-master-file)))
             (lilyfiles (append songs midi-files)))
         (insert "all:")
-        (dolist (f (mapcar 'LilyPond-file->wav lilyfiles))
+        (dolist (f (mapcar 'LilyPond-file->wav (append songs midi-files)))
           (insert " " f))
         (insert "\n")
         (when lilyfiles
@@ -188,10 +203,13 @@ only."
           (dolist (f songs)
             (insert (LilyPond-file->wav f) ": " f "\n")
             (insert "\t" LilyPond-synthesize-command " $< " (or language "") "\n"))
+          ;; We can't use midi files in ecasound directly, because setpos
+          ;; doesn't work on them.
           (dolist (f midi-files)
             (insert (LilyPond-file->wav f) ": " f "\n")
             (insert "\t" LilyPond-midi->wav-command " "
-                    (LilyPond-file->wav f) " " f "\n")))))
+                    (LilyPond-file->wav f) " " f "\n"))
+          )))
     temp-file))
 
 (defun LilyPond-song-after-compilation (buffer message)
@@ -210,11 +228,55 @@ only."
                        (LilyPond-song-compilation-data-midi data)))
   
 (defun LilyPond-sing-files (in-parallel songs midi-files)
+  (funcall (if LilyPond-use-ecasound
+               'LilyPond-sing-files-ecasound
+             'LilyPond-sing-files-play)
+           in-parallel songs midi-files))
+
+(defun LilyPond-sing-files-play (in-parallel songs midi-files)
   (let ((files (mapcar 'LilyPond-file->wav (append songs midi-files))))
     (if in-parallel
         (dolist (f files)
-          (start-process "lilysong-el" nil LilyPond-play-command f))
-      (apply 'start-process "lilysong-el" nil LilyPond-play-command files))))
+          (LilyPond-play-files (list f)))
+      (LilyPond-play-files files))))
+
+(defun LilyPond-sing-make-ewf-files (files)
+  (let ((offset 0.0))
+    (dolist (f files)
+      (let* ((wav-file (LilyPond-file->wav f))
+             (length (with-temp-buffer
+                       (call-process "ecalength" nil t nil "-s" wav-file)
+                       (goto-char (point-max))
+                       (forward-line -1)
+                       (read (current-buffer)))))
+        (with-temp-file (LilyPond-file->ewf f)
+          (insert "source = " wav-file "\n")
+          (insert (format "offset = %s\n" offset))
+          (insert "start-position = 0.0\n")
+          (insert (format "length = %s\n" length))
+          (insert "looping = false\n"))
+        (setq offset (+ offset length))))))
+
+(defun LilyPond-sing-files-ecasound (in-parallel songs midi-files)
+  (ecasound)
+  (eci-cs-add "lilysong-el")
+  (eci-cs-select "lilysong-el")
+  (eci-cs-remove)
+  (eci-cs-add "lilysong-el")
+  (eci-cs-select "lilysong-el")
+  (unless in-parallel
+    (LilyPond-sing-make-ewf-files songs)
+    ;; MIDI files should actually start with each of the songs
+    (mapc 'LilyPond-sing-make-ewf-files (mapcar 'list midi-files)))
+  (let ((files (mapcar (if in-parallel 'LilyPond-file->wav 'LilyPond-file->ewf)
+                       (append songs midi-files))))
+    (dolist (f files)
+      (eci-c-add f)
+      (eci-c-select f)
+      (eci-ai-add f))
+    (eci-c-select-all)
+    (eci-ao-add-default)
+    (eci-start)))
 
 (defun LilyPond-command-sing-current ()
   "Sing song around the current point."
