@@ -39,6 +39,11 @@
   :group 'LilyPond
   :type 'string)
 
+(defcustom LilyPond-midi->wav-command "timidity -Ow -o %s %s"
+  "Command used to make a WAV file from a MIDI file."
+  :group 'LilyPond
+  :type 'string)
+
 (defcustom LilyPond-mix-command "soxmix"
   "Command used to mix several WAV files into a single file."
   :group 'LilyPond
@@ -177,8 +182,7 @@ only."
               (let ((wav-file (LilyPond-file->wav midi)))
                 (when (or update-needed
                           (file-newer-than-file-p midi wav-file))
-                  (push (format "%s -Ow -o %s %s"
-                                LilyPond-midi-command wav-file midi)
+                  (push (format LilyPond-midi->wav-command wav-file midi)
                         commands))))
           midi-files)
     (let ((wav-files (mapcar 'LilyPond-file->wav (append songs midi-files))))
