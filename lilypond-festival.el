@@ -26,6 +26,7 @@
 
 ;;; Code:
 
+(require 'cl)
 (require 'lilypond-mode)
 
 
