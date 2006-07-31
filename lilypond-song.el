@@ -368,7 +368,9 @@ only."
   (cond
    ((not arg)
     nil)
-   ((equal arg '(4))
+   ((or
+     (numberp arg)
+     (equal arg '(4)))
     t)
    (t
     'all)))
