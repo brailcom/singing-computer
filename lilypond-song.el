@@ -374,7 +374,14 @@ only."
     t)
    (t
     'all)))
-     
+
+(defun lilysong-command (arg play-midi?)
+  (let* ((multi (lilysong-arg->multi arg))
+         (song-list (lilysong-song-list multi))
+         (midi-list (if play-midi? (lilysong-midi-list multi))))
+    (message "Singing %s" (mapconcat 'identity song-list ", "))
+    (lilysong-sing song-list midi-list (if play-midi? t (listp arg)))))
+
 (defun LilyPond-command-sing (&optional arg)
   "Sing lyrics of the current LilyPond buffer.
 Without any prefix argument, sing current \festival* command.
@@ -383,8 +390,7 @@ With a double universal prefix argument, sing all the parts.
 With a numeric prefix argument, ask which parts to sing and sing them
 sequentially rather than in parallel."
   (interactive "P")
-  (let ((multi (lilysong-arg->multi arg)))
-    (lilysong-sing (lilysong-song-list multi) '() (listp arg))))
+  (lilysong-command arg nil))
 
 (defun LilyPond-command-sing-and-play (&optional arg)
   "Sing lyrics and play midi of the current LilyPond buffer.
@@ -393,8 +399,7 @@ commands.
 With the universal prefix argument, ask which parts to sing and play.
 With a double universal prefix argument, sing and play all the parts."
   (interactive "P")
-  (let ((multi (lilysong-arg->multi arg)))
-    (lilysong-sing (lilysong-song-list multi) (lilysong-midi-list multi) t)))
+  (lilysong-command arg t))
 
 (defun LilyPond-command-sing-last ()
   "Repeat last LilyPond singing command."
