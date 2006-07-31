@@ -109,10 +109,14 @@ only."
 (defvar LilyPond-last-singing-args nil)
 (make-variable-buffer-local 'LilyPond-last-singing-args)
 
-(defun LilyPond-song-list (single)
-  (if single
-      (LilyPond-select-single-song)
-    (LilyPond-select-songs)))
+(defun LilyPond-song-list (multi)
+  (cond
+   ((eq multi 'all)
+    (LilyPond-all-songs))
+   (multi
+    (LilyPond-select-songs))
+   (t
+    (LilyPond-select-single-song))))
 
 (defun LilyPond-select-single-song ()
   (let ((song (LilyPond-current-song)))
@@ -148,15 +152,15 @@ only."
                                             'LilyPond-song-list-history)))
         (setq LilyPond-default-songs (nreverse song-list))))))
 
-(defun LilyPond-midi-list (single)
-  (if single
-      (list (LilyPond-string-current-midi))
-    (let ((midi-string (LilyPond-string-all-midi))
-          (midi-files '()))
-      (while (string-match "^\\([^ ]+\\) \\(.*\\)$" midi-string)
-        (push (match-string 1 midi-string) midi-files)
-        (setq midi-string (match-string 2 midi-string)))
-      midi-files)))
+(defun LilyPond-midi-list (multi)
+  (if multi
+      (let ((midi-string (LilyPond-string-all-midi))
+            (midi-files '()))
+        (while (string-match "^\\([^ ]+\\) \\(.*\\)$" midi-string)
+          (push (match-string 1 midi-string) midi-files)
+          (setq midi-string (match-string 2 midi-string)))
+        midi-files)
+    (list (LilyPond-string-current-midi))))
 
 (defun LilyPond-file->wav (filename &optional extension)
   (format "%s.%s" (if (string-match "\\.midi$" filename)
@@ -317,22 +321,35 @@ only."
           (incf right step))))
     (eci-start)))
 
+(defun LilyPond-song-arg->multi (arg)
+  (cond
+   ((not arg)
+    nil)
+   ((equal arg '(4))
+    t)
+   (t
+    'all)))
+     
 (defun LilyPond-command-sing (&optional arg)
   "Sing lyrics of the current LilyPond buffer.
 Without any prefix argument, sing current \festival* command.
 With the universal prefix argument, ask which parts to sing.
+With a double universal prefix argument, sing all the parts.
 With a numeric prefix argument, ask which parts to sing and sing them
 sequentially rather than in parallel."
   (interactive "P")
-  (LilyPond-sing (LilyPond-song-list (not arg)) '() (listp arg)))
+  (let ((multi (LilyPond-song-arg->multi arg)))
+    (LilyPond-sing (LilyPond-song-list multi) '() (listp arg))))
 
 (defun LilyPond-command-sing-and-play (&optional arg)
   "Sing lyrics and play midi of the current LilyPond buffer.
 Without any prefix argument, sing and play current \festival* and \midi
 commands.
-With the universal prefix argument, ask which parts to sing and play."
+With the universal prefix argument, ask which parts to sing and play.
+With a double universal prefix argument, sing and play all the parts."
   (interactive "P")
-  (LilyPond-sing (LilyPond-song-list (not arg)) (LilyPond-midi-list arg) t))
+  (let ((multi (LilyPond-song-arg->multi arg)))
+    (LilyPond-sing (LilyPond-song-list multi) (LilyPond-midi-list multi) t)))
 
 (defun LilyPond-command-sing-last ()
   "Repeat last LilyPond singing command."
@@ -349,11 +366,15 @@ With the universal prefix argument, ask which parts to sing and play."
 (easy-menu-add-item LilyPond-command-menu nil
   ["Sing Selected" (LilyPond-command-sing '(4)) t])
 (easy-menu-add-item LilyPond-command-menu nil
+  ["Sing All" (LilyPond-command-sing '(16)) t])
+(easy-menu-add-item LilyPond-command-menu nil
   ["Sing Selected Sequentially" (LilyPond-command-sing 1) t])
 (easy-menu-add-item LilyPond-command-menu nil
   ["Sing and Play Current" LilyPond-command-sing-and-play t])
 (easy-menu-add-item LilyPond-command-menu nil
   ["Sing and Play Selected" (LilyPond-command-sing-and-play '(4)) t])
+(easy-menu-add-item LilyPond-command-menu nil
+  ["Sing and Play All" (LilyPond-command-sing-and-play '(16)) t])
 (easy-menu-add-item LilyPond-command-menu nil
   ["Sing Last" LilyPond-command-sing-last t])
 
