@@ -293,7 +293,7 @@ only."
   (eci-cs-remove)
   (eci-cs-add "lilysong-el")
   (eci-cs-select "lilysong-el")
-  (eci-cs-set-param "-z:mixmode,avg")
+  (eci-cs-set-param "-z:mixmode,sum")
   (unless in-parallel
     (LilyPond-sing-make-ewf-files songs)
     ;; MIDI files should actually start with each of the songs
@@ -308,13 +308,10 @@ only."
     (eci-ao-add-default)
     (let* ((n (length songs))
            (right (if (<= n 1) 50 0))
-           (step (if (<= n 1) 0 (/ 100.0 (1- n))))
-           (amplify (* 100 (expt 2 (1- n)))))
+           (step (if (<= n 1) 0 (/ 100.0 (1- n)))))
       (dolist (f songs)
         (let ((chain (funcall file->wav f)))
           (eci-c-select chain)
-          (unless in-parallel
-            (eci-cop-add (format "-ea:%d" amplify)))
           (eci-cop-add "-erc:1,2")
           (eci-cop-add (format "-epp:%f" (min right 100)))
           (incf right step))))
