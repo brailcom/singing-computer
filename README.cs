@@ -47,9 +47,6 @@ singing-computer* je ještě nutné provést následující kroky:
 
 - Soubor `lilysong' umístěte do některé z cest v $PATH, např. /usr/local/bin/.
 
-Pokud chcete používat podporu pro syntézu zpěvu v Emacsu, zkopírujte ještě
-soubor lilypond-festival.el mezi ostatní *.el soubory instalace LilyPondu.
-
 * Použití
 
 Zpívající počítač definuje dva nové lilypondové příkazy \festival a
@@ -103,10 +100,23 @@ z následujících způsobů:
 Skript v obou případech vyrobí výsledný zvukový soubor SOUBOR.wav, který pak
 lze přehrát libovolným přehrávačem zvukových souborů.
 
-Podpora v Emacsu přidá do menu příkazy pro zazpívání obsahu aktuálního příkazu
-\festival nebo \festivalsyl a pro přezpívání obsahu všech těchto příkazů
-v aktuálním bufferu.
+* Podpora v Emacsu
 
+Pokud chcete kromě standardních lilypondových příkazů v Emacsu používat i
+podporu pro syntézu zpěvu, zkopírujte soubor lilypond-song.el mezi ostatní *.el
+soubory instalace LilyPondu a do svého ~/.emacs si přidejte řádek
+
+  (require 'lilypond-song)
+
+Podpora zpěvu v Emacsu doplní nové příkazy pro přezpívání textu syntetizovaného
+lilypondovými příkazy \festival a \festivalsyl:
+
+  M-x LilyPond-command-sing (C-c C-a)
+  M-x LilyPond-command-sing-and-play
+  M-x LilyPond-command-sing-last (C-c C-z)
+
+Více informací naleznete v online dokumentaci těchto příkazů v Emacsu.
+  
 * Problémy
 
 Současné verze Festivalu trpí dosud neopravenou chybou, která u tónů vyšších
