@@ -211,6 +211,7 @@
 ;; and end f0 target.  Really straightforward!
 ;;
 
+(defvar singing-last-f0 nil)
 (define (singing_f0_targets utt syl)
   "(singing_f0_targets utt syl)"
   (let ((start (item.feat syl 'syllable_start))
@@ -219,15 +220,28 @@
         (durs (syl->durations syl)))
     (let ((total-durs (apply + durs))
           (total-time (- end start))
-          (time start))
-      (apply append (mapcar (lambda (d f)
-                              (let ((range (* (/ d total-durs) total-time))
-                                    (old-time time))
-                                (set! time (+ time range))
-                                (let ((range-fraction (* 0.1 range)))
-                                  (list (list (+ old-time range-fraction) f)
-                                        (list (- time range-fraction) f)))))
-                            durs freqs)))))
+          (time start)
+          (prev-segment (item.prev (item.relation (item.daughter1 (item.relation syl 'SylStructure)) 'Segment)))
+          (last-f0 singing-last-f0))
+      (if freqs
+          (begin
+            (set! singing-last-f0 (car (last freqs)))
+            (append (if (and last-f0
+                             (string-equal (item.feat prev-segment 'name)
+                                           (car (car (cdr (car (PhoneSet.description '(silences))))))))
+                        (let ((s (item.feat prev-segment "p.end"))
+                              (e (item.feat prev-segment "end")))
+                          (list (list (+ s (* (- e s) 0.8)) last-f0)
+                                (list (+ s (* (- e s) 0.9)) (car freqs)))))
+                    (apply append
+                           (mapcar (lambda (d f)
+                                     (let ((range (* (/ d total-durs) total-time))
+                                           (old-time time))
+                                       (set! time (+ time range))
+                                       (let ((range-fraction (* 0.1 range)))
+                                         (list (list (+ old-time range-fraction) f)
+                                               (list (- time range-fraction) f)))))
+                                   durs freqs))))))))
 
 ;;
 ;; syl->freq
@@ -472,6 +486,7 @@
   (Parameter.set 'Int_Method 'General)
   (Parameter.set 'Int_Target_Method Int_Targets_General)
   (set! int_general_params `((targ_func ,singing_f0_targets)))
+  (set! singing-last-f0 nil)
   ;; use our duration function
   (Parameter.set 'Duration_Method singing_duration_method)
   ;; set phoneme corrections for the current language
