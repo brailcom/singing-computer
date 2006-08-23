@@ -82,7 +82,7 @@
 (defun lilysong-change-language ()
   (interactive)
   (setq lilysong-language
-        (completing-read "Lyrics language: " '("en" "cs"))))
+        (completing-read "Lyrics language: " '(("en") ("cs")))))
 
 (defun lilysong-update-language ()
   (unless lilysong-language
@@ -169,7 +169,7 @@ only."
                                           (mapconcat 'identity initial-songs
                                                      ", "))
                                 ""))
-                      all-songs
+                      (mapcar 'list all-songs)
                       nil t nil
                       'lilysong-song-history)))
     (if (equal last-input "")
@@ -181,7 +181,7 @@ only."
           (setq default-input (second (member last-input available-songs)))
           (setq available-songs (remove last-input available-songs))
           (setq last-input (completing-read "Sing file: "
-                                            available-songs
+                                            (mapcar #'list available-songs)
                                             nil t default-input
                                             'lilysong-song-history)))
         (setq lilysong-last-song-list (nreverse song-list))))))
