@@ -120,6 +120,11 @@ the \festival and \festivalsyl LilyPond commands:
 
 See online documentation of the commands in Emacs for more details.
 
+NOTE: When Ecasound with Emacs support is installed, lilypond-song uses it by
+default.  Ecasound Emacs support uses a daemon mode which usually doesn't work
+so you must to disable it in the ecasound-arguments Emacs variable, e.g. by
+disabling its "Allow remote connections" option in customize.
+
 * Problems
 
 Current Festival versions contain a bug that causes Festival crashes or

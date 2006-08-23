@@ -116,6 +116,12 @@ lilypondovými příkazy \festival a \festivalsyl:
   M-x LilyPond-command-sing-last (C-c C-z)
 
 Více informací naleznete v online dokumentaci těchto příkazů v Emacsu.
+
+UPOZORNĚNÍ: Pokud je instalován Ecasound s podporou Emacsu, lilypond-song jej
+automaticky použije.  Emacsová podpora Ecasoundu je však implicitně nastavena
+na daemon mód, který obvykle nefunguje, je tedy potřeba ho odnastavit.  To se
+provede nastavením emacsové proměnné ecasound-arguments, např. zrušením
+zaškrtnutí volby "Allow remote connections" v customize.
   
 * Problémy
 
