@@ -100,6 +100,69 @@ z následujících způsobů:
 Skript v obou případech vyrobí výsledný zvukový soubor SOUBOR.wav, který pak
 lze přehrát libovolným přehrávačem zvukových souborů.
 
+* Seznam varovných hlášení
+
+Narazí-li Zpívající počítač na podezřelou situaci ve vstupním souboru, vypíše
+některé z následujících varovných hlášení, označených jako `***Song
+Warning***':
+
+  Lyrics context not found
+
+    Text by měl náležet do daného kontextu, ale tento kontext nebyl nalezen.
+    Za chybovým hlášením je vypsáno jméno příslušného kontextu.
+
+  Extra notes
+
+    Byly nalezeny noty bez textu.
+    Jedná se o noty, které zbyly v daném kontextu po zpracování veškerého textu.
+    Za chybovým hlášením je vypsáno jméno kontextu a přebývající noty.
+
+  Missing lyrics
+
+    Byly nalezeny noty bez textu.
+    Jedná se o noty, které zbyly v určitém úseku hudby po zpracování veškerého
+    textu.
+    Za chybovým hlášením je vypsáno jméno kontextu a přebývající noty.
+
+  Extra lyrics
+
+    Byl nalezen text bez odpovídajících not.
+    Jedná se o text, který zbyl v daném kontextu po zpracování všech not.
+    Za chybovým hlášením je vypsáno jméno kontextu a přebývající noty.
+
+  Unfinished slur
+
+    Byla detekována neukončená skupina vzájemně propojených not
+    (např. obloučkem), některé noty na konci chybí.
+    Za chybovým hlášením je vypsáno jméno kontextu a příslušná skupina not.
+
+  Excessive skip
+
+    V textu je vyznačeno přeskočení not, ale celková délka přeskočených not je
+    kratší než délka přeskoku.
+    Za chybovým hlášením je vypsáno jméno kontextu, délka přeskoku, přebytečná
+    délka přeskoku a noty odpovídající přeskoku.
+
+  Skip misalignment
+
+    V textu je vyznačeno přeskočení not, ale celková délka přeskočených not
+    neodpovídá délce přeskoku.
+    Za chybovým hlášením je vypsáno jméno kontextu, délka přeskoku, přebytečná
+    délka přeskoku a noty odpovídající přeskoku.
+
+  Slur underrun
+
+    Ve zdrojové specifikace se objevilo více ukončení než zahájení skupin not.
+
+  Rests in a slur
+
+    V obloučku se objevila pauza.
+    Za chybovým hlášením je vypsán obsah daného obloučku.
+
+Kromě těchto varovných hlášení se také mohou objevit chybová hlášení (označená
+jako "error").  Ta jsou způsobena chybami programu a jejich výskyt by měl být
+nahlášen vývojářům Zpívajícího počítače, viz odstavec Kontakt.
+
 * Podpora v Emacsu
 
 Pokud chcete kromě standardních lilypondových příkazů v Emacsu používat i

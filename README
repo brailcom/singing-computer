@@ -102,6 +102,71 @@ following ways:
 In both cases the resulting sound file FILE.wav gets created that can be played
 with any sound player.
 
+* List of warnings
+
+When Singing Computer meets situation that is likely to indicate error in the
+input file being processed, it prints one of the following warnings, all marked
+by the `***Song Warning***' label:
+
+  Lyrics context not found
+
+    Lyrics is declared to belong to the given context, but the context was not
+    found.
+    The missing context name is printed after the message.
+
+  Extra notes
+
+    Notes without corresponding lyrics were found.
+    These are notes that remained in a context after all lyrics was processed.
+    The context name and its extra notes are printed after the message.
+
+  Missing lyrics
+
+    Notes without corresponding lyrics were found.
+    These are notes that remained in a single piece of music after all lyrics
+    was processed.
+    The context name and the extra notes are printed after the message.
+
+  Extra lyrics
+
+    Lyrics without corresponding notes was found.
+    This is lyrics that remained in a context after all notes were processed.
+    The context name and its extra lyrics are printed after the message.
+
+  Unfinished slur
+
+    Incomplete group of notes that should appear inside a single melisma was
+    detected, some notes at the end are missing.
+    Current context name and the incomplete group of notes are printed after the
+    message.
+
+  Excessive skip
+
+    There is a skip in lyrics but the corresponding notes don't fill it
+    completely, some notes are missing.
+    The context name, skip duration, the extra skip part duration and the notes
+    corresponding to the skip are printed after the message.
+
+  Skip misalignment
+
+    There is a skip in lyrics but the total duration of the corresponding notes
+    doesn't align with the length of the skip.
+    The context name, skip duration, the extra skip part duration and the notes
+    corresponding to the skip are printed after the message.
+
+  Slur underrun
+
+    More melismata finishers than openers were detected.    
+
+  Rests in a slur
+
+    Rests are present in a slur.
+    The given slur contents are printed after the message.
+
+There can also occur messages marked as errors (rather than warnings).  These
+correspond to programming errors and their occurrence should be reported to
+Singing Computer developers, see Contact below.
+
 * Emacs support
 
 If you want to use song synthesis support in Emacs in addition to the standard

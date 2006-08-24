@@ -147,7 +147,7 @@
 
 
 (define (song:warning message . args)
-  (format #t "~%***Warning*** ") (apply ly:message message args))
+  (format #t "~%***Song Warning*** ") (apply ly:message message args))
 
 (define (song:music-property-value? music property value)
   "Return true iff MUSIC's PROPERTY is equal to VALUE."
@@ -507,9 +507,9 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
          (null? score-list))
     #f)
    ((null? lyrics/skip-list)
-    (song:warning "Extra notes? ~a" score-list))
+    (song:warning "Extra notes: ~a ~a" context score-list))
    ((null? score-list)
-    (song:warning "Extra lyrics: ~a" lyrics/skip-list))
+    (song:warning "Extra lyrics: ~a ~a" context lyrics/skip-list))
    (else
     (let* ((lyrics/skip (car lyrics/skip-list))
            (lyrics-context ((if (song:lyrics? lyrics/skip) song:lyrics-context song:skip-context) lyrics/skip))
@@ -586,7 +586,7 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
               (set! note-list (cdr note-list)))
             (if (not (null? note-list))
                 (begin
-                  (song:warning "Missing lyrics: ~a" note-list)
+                  (song:warning "Missing lyrics: ~a ~a" context note-list)
                   (set! note-list '()))))
           (let ((lyrics/skip (car lyrics/skip-list)))
             (receive (notelist/rest note-list*) (if (song:lyrics? lyrics/skip)
@@ -658,7 +658,7 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
             (set! join (and (not ignore-melismata) (song:note-joined note))))
           (set! note-list (cdr note-list)))
         (if join
-            (song:warning "Unfinished note list: ~a" consumed))
+            (song:warning "Unfinished slur: ~a ~a" context consumed))
         (values (reverse consumed) note-list))))
   
 (define (song:consume-skip-notes skip note-list context)
@@ -674,13 +674,14 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
         (song:push! note consumed)
         (set! duration (- duration (song:note-duration note))))
       (set! note-list (cdr note-list)))
+    (set! consumed (reverse! consumed))
     (cond
      ((> duration epsilon)
-      (song:warning "Excessive skip: ~a ~a" skip duration))
+      (song:warning "Excessive skip: ~a ~a ~a ~a" context skip duration consumed))
      ((< duration (- epsilon))
-      (song:warning "Skip misalignment: ~a ~a" skip duration)))
+      (song:warning "Skip misalignment: ~a ~a ~a ~a" context skip duration consumed)))
     (values (if song:*skip-word*
-                (reverse consumed)
+                consumed
                 '())
             note-list)))
 
