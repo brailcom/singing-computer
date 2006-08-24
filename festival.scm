@@ -492,11 +492,11 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
   ;; Each processed score-notes instance must receive at most one block in each
   ;; song:insert-lyrics! call.  (It can get other blocks if more pieces of
   ;; lyrics are attached to the same score part.)
-  (let ((lyrics-score-list (list (song:find-lyrics-score score-list context #f))))
+  (let ((lyrics-score-list (song:find-lyrics-score score-list context #f)))
     (song:debug "Lyrics+skip list" lyrics/skip-list)
     (song:debug "Corresponding score-* list" score-list)
     (if lyrics-score-list
-        (song:insert-lyrics*! lyrics/skip-list lyrics-score-list context)
+        (song:insert-lyrics*! lyrics/skip-list (list lyrics-score-list) context)
         (song:warning "Lyrics context not found: ~a" context))))
 
 (define (song:insert-lyrics*! lyrics/skip-list score-list context)
