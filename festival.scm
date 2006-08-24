@@ -146,8 +146,31 @@
 ;;; LilyPond utility functions
 
 
+(define (song:pp object)
+  (cond
+   ((list? object)
+    (format #f "[~{~a ~}]" (map song:pp object)))
+   ((song:skip? object)
+    (format #f "skip(~a)" (song:skip-duration object)))
+   ((song:lyrics? object)
+    (format #f "~a(~a)~a" (song:lyrics-text object) (song:lyrics-duration object)
+            (if (song:lyrics-unfinished object) "-" "")))
+   ((song:note? object)
+    (format #f "~a~a~a"
+            (song:note-pitch object)
+            (let ((duration (song:note-duration object)))
+              (if (< (abs (- duration (inexact->exact duration))) 0.0001)
+                  (inexact->exact duration)
+                  duration))
+            (if (song:note-joined object) "-" "")))
+   ((song:rest? object)
+    (format #f "rest(~a)" (song:rest-duration object)))
+   (else
+    object)))
+
+
 (define (song:warning message . args)
-  (format #t "~%***Song Warning*** ") (apply ly:message message args))
+  (format #t "~%***Song Warning*** ") (apply ly:message message (map song:pp args)))
 
 (define (song:music-property-value? music property value)
   "Return true iff MUSIC's PROPERTY is equal to VALUE."
