@@ -826,7 +826,15 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
 
 (define (song:write-lyrics-element port text slur-list)
   (let ((fmt "~{~{~a~^+~}~^,~}")
-        (transform (lambda (function) (map (lambda (slur) (map function slur)) slur-list))))
+        (transform (lambda (function)
+                     (map (lambda (slur)
+                            (let ((rests (filter song:rest? slur)))
+                              (if (not (null? rests))
+                                  (begin
+                                    (song:warning "Rests in a slur: ~a" slur)
+                                    (set! slur (remove song:rest? slur)))))
+                            (map function slur))
+                          slur-list))))
     (format port "<DURATION BEATS=\"~@?\"><PITCH NOTE=\"~@?\">~a</PITCH></DURATION>~%"
             fmt (transform song:note-duration)
             fmt (transform (song:compose song:festival-pitch song:note-pitch))
