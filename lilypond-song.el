@@ -80,9 +80,10 @@
 (make-variable-buffer-local 'lilysong-last-language)
 
 (defun lilysong-change-language ()
+  "Change synthesis language or voice of the current document."
   (interactive)
   (setq lilysong-language
-        (completing-read "Lyrics language: " '(("en") ("cs")))))
+        (completing-read "Lyrics language or voice: " '(("en") ("cs")))))
 
 (defun lilysong-update-language ()
   (unless lilysong-language
