@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 usage () {
   echo "usage: $0 [ -p PLAY-PROGRAM ] FILE.xml [ LANGUAGE-CODE-OR-VOICE [ SPEEDUP ] ]"
   echo "       $0 FILE.ly [ LANGUAGE-CODE-OR-VOICE ]"
