@@ -161,7 +161,7 @@
             (let ((duration (song:note-duration object)))
               (if (< (abs (- duration (inexact->exact duration))) 0.0001)
                   (inexact->exact duration)
-                  duration))
+                  (/ (round (* duration 100)) 100)))
             (if (song:note-joined object) "-" "")))
    ((song:rest? object)
     (format #f "rest(~a)" (song:rest-duration object)))
