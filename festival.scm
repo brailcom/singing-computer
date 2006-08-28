@@ -146,6 +146,8 @@
 ;;; LilyPond utility functions
 
 
+(define song:pp-pitch-names '((0 . "c") (1 . "des") (2 . "d") (3 . "es") (4 . "e") (5 . "f")
+                              (6 . "ges") (7 . "g") (8 . "as") (9 . "a") (10 . "bes") (11 . "b")))
 (define (song:pp object)
   (cond
    ((list? object)
@@ -156,18 +158,28 @@
     (format #f "~a(~a)~a" (song:lyrics-text object) (song:lyrics-duration object)
             (if (song:lyrics-unfinished object) "-" "")))
    ((song:note? object)
-    (format #f "~a~a~a"
-            (song:note-pitch object)
-            (let ((duration (song:note-duration object)))
-              (if (< (abs (- duration (inexact->exact duration))) 0.0001)
-                  (inexact->exact duration)
-                  (/ (round (* duration 100)) 100)))
-            (if (song:note-joined object) "-" "")))
+    (let ((pitch (ly:pitch-semitones (song:note-pitch object))))
+      (format #f "~a~a~a~a"
+              (cdr (assoc (modulo pitch 12) song:pp-pitch-names))
+              (let ((octave (+ (inexact->exact (floor (/ pitch 12))) 1)))
+                (cond
+                 ((= octave 0)
+                  "")
+                 ((> octave 0)
+                  (make-uniform-array #\' octave))
+                 ((< octave 0)
+                  (make-uniform-array #\, (- 0 octave)))))
+              (song:pp-duration (song:note-duration object))
+              (if (song:note-joined object) "-" ""))))
    ((song:rest? object)
-    (format #f "rest(~a)" (song:rest-duration object)))
+    (format #f "r~a" (song:pp-duration (song:rest-duration object))))
    (else
     object)))
 
+(define (song:pp-duration duration)
+  (if (< (abs (- duration (inexact->exact duration))) 0.0001)
+      (inexact->exact duration)
+      (/ (round (* duration 100)) 100)))
 
 (define (song:warning message . args)
   (format #t "~%***Song Warning*** ") (apply ly:message message (map song:pp args)))
