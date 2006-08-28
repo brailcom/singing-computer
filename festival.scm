@@ -318,7 +318,7 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
         ((song:music-name? music 'EventChord)
          (let ((lyric-event (song:find-child-named music 'LyricEvent)))
            (song:push! (song:make-lyrics
-                        #:text (second (ly:music-property lyric-event 'text))
+                        #:text (ly:music-property lyric-event 'text)
                         #:duration (* (song:duration->number (ly:music-property lyric-event 'duration)) 4)
                         #:unfinished (and (not song:*syllabify*) (song:find-child-named music 'HyphenEvent))
                         #:ignore-melismata ignore-melismata

@@ -20,19 +20,19 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.
 
-\version "2.6.3"
+\version "2.7.40"
 
 #(ly:load "festival.scm")
 
 % \festival #"filename" { \tempo N = X } { music }
 festival =
-#(def-music-function (parser location filename tempo music) (string? ly:music? ly:music?)
+#(define-music-function (parser location filename tempo music) (string? ly:music? ly:music?)
   (song:output-file music tempo filename)
   music)
 
 % \festivalsyl #"filename" { \tempo N = X } { music }
 festivalsyl =
-#(def-music-function (parser location filename tempo music) (string? ly:music? ly:music?)
+#(define-music-function (parser location filename tempo music) (string? ly:music? ly:music?)
   (set! song:*syllabify* #t)
   (song:output-file music tempo filename)
   music)
