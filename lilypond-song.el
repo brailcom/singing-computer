@@ -94,7 +94,7 @@
 
 
 (defvar lilysong-festival-command-regexp
-  "\\\\festival\\(syl\\)? +#\"\\([^\"]+\\)\"")
+  "^[^%\n]*\\\\festival\\(syl\\)? +#\"\\([^\"]+\\)\"")
 
 (defun lilysong-find-song (direction)
   "Find XML file name of the nearest Festival command in the given DIRECTION.
