@@ -234,6 +234,7 @@ only."
            :songs songs
            :midi midi-files
            :in-parallel in-parallel))
+    (save-some-buffers (not compilation-ask-about-save))
     (if (lilysong-up-to-date-p makefile)
         (lilysong-process-generated-files lilysong-compilation-data)
       (compile command))))
