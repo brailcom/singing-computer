@@ -93,6 +93,23 @@
 ;;; Looking for \festival* and \midi commands
 
 
+(defun lilysong-document-files ()
+  (let ((resulting-files ())
+        (stack (list (LilyPond-get-master-file))))
+    (while (not (null stack))
+      (let ((file (expand-file-name (pop stack))))
+        (when (and (file-exists-p file)
+                   (not (member file resulting-files)))
+          (push file resulting-files)
+          (save-excursion
+            (save-restriction
+              (set-buffer (find-file-noselect file))
+              (widen)
+              (goto-char (point-min))
+              (while (re-search-forward "^[^%\n]*\\\\include +\"\\([^\"]+\\)\"" nil t)
+                (push (match-string 1) stack)))))))
+    (nreverse resulting-files)))
+     
 (defvar lilysong-festival-command-regexp
   "^[^%\n]*\\\\festival\\(syl\\)? +#\"\\([^\"]+\\)\"")
 
@@ -116,7 +133,7 @@ If there is none, return nil."
         (progn (beginning-of-line) (lilysong-find-song 'forward)))))
 
 (defun lilysong-all-songs (&optional limit-to-region)
-  "Return list of XML file names of the song commands in the current document.
+  "Return list of XML file names of the song commands in the current buffer.
 If there are none, return an empty list.
 If LIMIT-TO-REGION is non-nil, look for the commands in the current region
 only."
@@ -131,6 +148,14 @@ only."
           (push current result))))
     (nreverse result)))
 
+(defun lilysong-all-songs* ()
+  "Return list of XML file names of the song commands in the current document."
+  (remove-duplicates (save-excursion
+                       (mapcan (lambda (f)
+                                 (set-buffer (find-file-noselect f))
+                                 (lilysong-all-songs))
+                               (lilysong-document-files)))))
+
 (defvar lilysong-song-history nil)
 (make-variable-buffer-local 'lilysong-song-history)
 
@@ -143,7 +168,7 @@ only."
 (defun lilysong-song-list (multi)
   (cond
    ((eq multi 'all)
-    (lilysong-all-songs))
+    (lilysong-all-songs*))
    (multi
     (lilysong-select-songs))
    (t
@@ -156,7 +181,7 @@ only."
       (error "No song found"))))
 
 (defun lilysong-select-songs ()
-  (let* ((all-songs (lilysong-all-songs))
+  (let* ((all-songs (lilysong-all-songs*))
          (available-songs all-songs)
          (initial-songs (if (or (not lilysong-last-song-list)
                                 (eq LilyPond-command-current
