@@ -94,12 +94,14 @@
                         (string->symbol (apply format #f format% name extra-args))))
          ($record? (make-symbol "song:~a?"))
          ($make-record (make-symbol "song:make-~a"))
+         ($copy-record (make-symbol "song:copy-~a"))
          (reader-format "song:~a-~a")
          (writer-format "song:set-~a-~a!")
          (record (gensym)))
     `(begin
        (define ,$record? #f)
        (define ,$make-record #f)
+       (define ,$copy-record #f)
        ,@(map (lambda (s) `(define ,(make-symbol reader-format (car s)) #f)) slots*)
        ,@(map (lambda (s) `(define ,(make-symbol writer-format (car s)) #f)) slots*)
        (let ((,record ,(make-record-type name (map car slots*))))
@@ -108,6 +110,14 @@
          (set! ,$make-record
                (lambda* (#:key ,@slots)
                  ((record-constructor ,record) ,@(map car slots*))))
+         (set! ,$copy-record
+               (lambda (record)
+                 (,$make-record ,@(apply
+                                   append
+                                   (map (lambda (slot)
+                                          (list (symbol->keyword slot)
+                                                (list (make-symbol reader-format slot) 'record)))
+                                        (map car slots*))))))
          ,@(map (lambda (s)
                   `(set! ,(make-symbol reader-format (car s))
                          (record-accessor ,record (quote ,(car s)))))
