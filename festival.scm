@@ -57,7 +57,7 @@
 (define-public (song:output-file music tempo filename)
   (if song:*debug*
       (debug-enable 'backtrace))
-  (ly:message "Writing Festival XML file...")
+  (ly:message "Writing Festival XML file ~a..." filename)
   (let ((port (open-output-file filename)))
     (song:write-header port tempo)
     (song:write-lyrics port music)
