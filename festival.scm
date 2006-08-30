@@ -187,6 +187,7 @@
     object)))
 
 (define (song:pp-duration duration)
+  (set! duration (/ 4 duration))
   (if (< (abs (- duration (inexact->exact duration))) 0.0001)
       (inexact->exact duration)
       (/ (round (* duration 100)) 100)))
