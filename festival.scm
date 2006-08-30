@@ -833,7 +833,7 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
                                      (7 "G") (8 "G#") (9 "A") (10 "A#") (11 "B")))
 (define (song:festival-pitch pitch)
   (let* ((semitones (ly:pitch-semitones pitch))
-         (octave (quotient semitones 12))
+         (octave (inexact->exact (floor (/ semitones 12))))
          (tone (modulo semitones 12)))
     (format #f "~a~a" (cadr (assoc tone song:festival-note-mapping))
             (+ octave song:*base-octave* song:*base-octave-shift*))))
