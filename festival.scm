@@ -22,7 +22,6 @@
 
 
 (use-modules (srfi srfi-1))
-(use-modules (ice-9 format))
 (use-modules (ice-9 optargs))
 (use-modules (ice-9 pretty-print))
 (use-modules (ice-9 receive))
@@ -203,20 +202,22 @@
       (inexact->exact duration)
       (/ (round (* duration 100)) 100)))
 
-(define (song:warning object-with-bar message . args)
-  (let ((bar (cond
-              ((not object-with-bar)
-               #f)
-              ((song:note? object-with-bar)
-               (song:note-bar object-with-bar))
-              ((song:rest? object-with-bar)
-               (song:rest-bar object-with-bar))
-              ((integer? object-with-bar)
-               object-with-bar)
-              (else
-               (format #t "Minor programming error: ~a~%" object-with-bar)
-               #f))))
-    (format #t "~%***Song Warning~@[ around bar#~d~]***" bar)
+(define (song:warning object-with-origin message . args)
+  (let ((origin (cond
+                 ((not object-with-origin)
+                  #f)
+                 ((song:note? object-with-origin)
+                  (song:note-origin object-with-origin))
+                 ((song:rest? object-with-origin)
+                  (song:rest-origin object-with-origin))
+                 ((ly:location? object-with-origin)
+                  object-with-origin)
+                 (else
+                  (format #t "Minor programming error: ~a~%" object-with-origin)
+                  #f))))
+    (if origin
+        (ly:input-message origin "***Song Warning***")
+        (format #t "~%***Song Warning***"))
     (apply ly:message message (map song:pp args))))
 
 (define (song:music-property-value? music property value)
@@ -284,25 +285,6 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
 
 ;;; Analysis functions
 
-
-(song:defstruct bar-info
-  (number 1)                            ; current bar number
-  (timing 1)                            ; current timing (e.g. 4/4 = 1, 3/4 = 0.75)
-  (current-length 0)                    ; current "consumed" length of the current bar (0 <= length < timing)
-  )
-
-(define (song:advance-bar! bar-info duration)
-  (let* ((number (song:bar-info-number bar-info))
-         (length (/ duration 4))
-         (new-length (+ (song:bar-info-current-length bar-info) length))
-         (epsilon 0.0001))
-    (while (> (- new-length (song:bar-info-timing bar-info)) (- epsilon))
-      (song:set-bar-info-number! bar-info (+ number 1))
-      (set! new-length (- new-length (song:bar-info-timing bar-info)))
-      (if (< (abs new-length) epsilon)
-          (set! new-length 0)))
-    (song:set-bar-info-current-length! bar-info new-length)
-    number))
 
 (define (song:duration->number duration)
   (let* ((log (ly:duration-log duration))
@@ -426,19 +408,19 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
   pitch
   duration
   joined ; to the next note
-  bar
+  origin
   )
   
 (song:defstruct rest
   duration
-  bar
+  origin
   )
 
-(define (song:get-notes music bar-info)
+(define (song:get-notes music)
   ;; Returns list of score-* instances.
-  (song:get-notes* music bar-info #t))
+  (song:get-notes* music #t))
 
-(define (song:get-notes* music bar-info autobeaming*)
+(define (song:get-notes* music autobeaming*)
   ;; Returns list of score-* instances.
   (let* ((result-list '())
          (in-slur 0)
@@ -453,22 +435,19 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
                (children (song:music-elements music)))
            (song:add! (song:make-score-voice #:context (song:debug "Changing context" context)
                                              #:elements (append-map (lambda (elt)
-                                                                      (song:get-notes* elt bar-info autobeaming))
+                                                                      (song:get-notes* elt autobeaming))
                                                                     children))
                       result-list))
          #t)
         ;; timing change
         ((song:music-property? music 'timeSignatureFraction)
          (let ((value (song:property-value music)))
-           (song:debug "Timing change" value)
-           (song:set-bar-info-timing! bar-info (/ (car value) (cdr value)))))
+           (song:debug "Timing change" value)))
         ;; simultaneous notes
         ((song:music-name? music 'SimultaneousMusic)
-         (let* ((bar-info* (song:copy-bar-info bar-info))
-                (simultaneous-lists (map (lambda (child)
-                                           (set! bar-info bar-info*)
-                                           (song:get-notes* child bar-info autobeaming))
-                                         (ly:music-property music 'elements))))
+         (let ((simultaneous-lists (map (lambda (child)
+                                          (song:get-notes* child autobeaming))
+                                        (ly:music-property music 'elements))))
            (song:debug "Simultaneous lists" simultaneous-lists)
            (song:add! (song:make-score-choice #:lists simultaneous-lists) result-list))
          #t)
@@ -478,7 +457,7 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
                (children (song:music-elements music)))
            (song:add! (song:make-score-repetice #:count repeat-count
                                                 #:elements (append-map
-                                                            (lambda (elt) (song:get-notes* elt bar-info autobeaming))
+                                                            (lambda (elt) (song:get-notes* elt autobeaming))
                                                             children))
                       result-list))
          #t)
@@ -505,7 +484,7 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
                (if (< in-slur 0)
                    (song:warning note "Slur underrun"))
                (let ((note-spec (song:make-note #:pitch pitch #:duration duration #:joined (> in-slur 0)
-                                                #:bar (song:advance-bar! bar-info duration)))
+                                                #:origin (ly:music-property note 'origin)))
                      (last-result (and (not (null? result-list)) (last result-list))))
                  (if (and last-result
                           (song:score-notes? last-result))
@@ -517,7 +496,7 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
              (song:debug "Rest" rest)
              (let* ((duration (* (song:duration->number (ly:music-property rest 'duration)) 4))
                     (rest-spec (song:make-rest #:duration duration
-                                               #:bar (song:advance-bar! bar-info duration)))
+                                               #:origin (ly:music-property rest 'origin)))
                     (last-result (and (not (null? result-list)) (last result-list))))
                (if (and last-result
                         (song:score-notes? last-result))
@@ -886,7 +865,7 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
   ;; The main analysis function.
   (if song:*debug*
       (display-scheme-music music))
-  (let ((score-list (song:debug "Final raw notes" (song:get-notes music (song:make-bar-info))))
+  (let ((score-list (song:debug "Final raw notes" (song:get-notes music)))
         (music-context-list (song:collect-lyrics-music music)))
     (for-each (lambda (music-context)
                 (let ((context (song:music-context-context music-context)))
