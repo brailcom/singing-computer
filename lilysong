@@ -5,6 +5,7 @@ set -e
 usage () {
   echo "usage: $0 [ -p PLAY-PROGRAM ] FILE.xml [ LANGUAGE-CODE-OR-VOICE [ SPEEDUP ] ]"
   echo "       $0 FILE.ly [ LANGUAGE-CODE-OR-VOICE ]"
+  echo "       $0 --list-voices"
   exit 1
 }
 
@@ -52,8 +53,21 @@ process_ly () {
   process_xml "$xmlfile" "$voice" $speedup
 }
 
+list_voices () {
+festival --pipe <<EOF
+(let ((voices (voice.list))
+      (print-voice (lambda (v) (format t "voice_%s\n" v))))
+  (mapcar print-voice voices)
+  (mapcar (lambda (v) (if (not (member v voices)) (print-voice v)))
+          (mapcar car Voice_descriptions)))
+EOF
+}
+
 if [ "$1" = --help ]; then
   usage
+elif [ "$1" = --list-voices ]; then
+  list_voices
+  exit 0
 fi
 
 play=""

@@ -79,11 +79,28 @@
 (defvar lilysong-last-language nil)
 (make-variable-buffer-local 'lilysong-last-language)
 
+(defvar lilysong-languages '("cs" "en"))
+
+(defvar lilysong-voices nil)
+
+(defun lilysong-voices ()
+  (or lilysong-voices
+      (with-temp-buffer
+        (call-process "lilysong" nil t nil "--list-voices")
+        (goto-char (point-min))
+        (while (not (eobp))
+          (push (buffer-substring-no-properties
+                 (line-beginning-position) (line-end-position))
+                lilysong-voices)
+          (forward-line))
+        lilysong-voices)))
+  
 (defun lilysong-change-language ()
   "Change synthesis language or voice of the current document."
   (interactive)
   (setq lilysong-language
-        (completing-read "Lyrics language or voice: " '(("en") ("cs")))))
+        (completing-read "Lyrics language or voice: "
+                         (mapcar 'list (lilysong-voices)))))
 
 (defun lilysong-update-language ()
   (unless lilysong-language
