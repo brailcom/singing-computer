@@ -288,7 +288,10 @@ only."
   (let ((temp-file (make-temp-file "Makefile.lilysong-el"))
         (language lilysong-language))
     (with-temp-file temp-file
-      (let ((master-file (save-excursion
+      (let ((source-files (save-excursion
+                            (set-buffer buffer)
+                            (lilysong-document-files)))
+            (master-file (save-excursion
                            (set-buffer buffer)
                            (LilyPond-get-master-file)))
             (lilyfiles (append songs midi-files)))
@@ -299,7 +302,7 @@ only."
         (when lilyfiles
           (dolist (f lilyfiles)
             (insert f " "))
-          (insert ": " master-file "\n")
+          (insert ": " (mapconcat 'identity source-files " ") "\n")
           (insert "\t" LilyPond-lilypond-command " " master-file "\n")
           (dolist (f songs)
             (insert (lilysong-file->wav f) ": " f "\n")
