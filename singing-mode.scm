@@ -480,6 +480,8 @@
 ;; singing_init_func
 ;;
 
+(defvar singing_previous_eou_tree nil)
+
 (define (singing_init_func)
   "(singing_init_func) - Initialization for Singing mode"
   (if (not (symbol-bound? 'phoneme_durations))
@@ -495,6 +497,9 @@
   (let ((language (cadr (assoc 'language
                                (cadr (voice.description current-voice))))))
     (set! phoneme_offsets* (cdr (assoc language phoneme_offsets))))
+  ;; avoid splitting to multiple utterances with insertion of unwanted pauses
+  (set! singing_previous_eou_tree eou_tree)
+  (set! eou_tree nil)
   ;; use our xml parsing function
   (set! singing_previous_elements xxml_elements)
   (set! xxml_elements singing_xml_elements))
@@ -505,6 +510,7 @@
 
 (define (singing_exit_func)
   "(singing_exit_func) - Exit function for Singing mode"
+  (set! eou_tree singing_previous_eou_tree)
   (set! xxml_elements singing_previous_elements))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
