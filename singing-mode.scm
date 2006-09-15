@@ -227,6 +227,8 @@
           (begin
             (set! singing-last-f0 (car (last freqs)))
             (append (if (and last-f0
+                             prev-segment
+                             (item.prev prev-segment)
                              (string-equal (item.feat prev-segment 'name)
                                            (car (car (cdr (car (PhoneSet.description '(silences))))))))
                         (let ((s (item.feat prev-segment "p.end"))
