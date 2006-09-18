@@ -337,15 +337,30 @@
 
 (define (singing_do_syllable syl)
   (let ((conslen 0.0)
-        (vowlen 0.0))
+        (vowlen 0.0)
+        (segments (item.leafs (item.relation syl 'SylStructure))))
+    ;; if there are no vowels, turn a middle consonant into a vowel;
+    ;; hopefully this works well for languages where syllables may be
+    ;; created by some consonants too
+    (let ((segments* segments)
+          (vowel-found nil))
+      (while (and segments* (not vowel-found))
+        (if (equal? "+" (item.feat (car segments*) "ph_vc"))
+            (set! vowel-found t)
+            (set! segments* (cdr segments*))))
+      (if (not vowel-found)
+          (item.set_feat (nth (nint (/ (- (length segments) 1) 2))
+                              segments)
+                         "singing-vc" "+")))
     ;; sum up the length of all of the vowels and consonants in
     ;; this syllable
     (mapcar (lambda (s)
               (let ((slen (get_avg_duration (item.feat s "name"))))
-                (if (equal? "+" (item.feat s "ph_vc"))
+                (if (or (equal? "+" (item.feat s "ph_vc"))
+                        (equal? "+" (item.feat s "singing-vc")))
                     (set! vowlen (+ vowlen slen))
                     (set! conslen (+ conslen slen)))))
-            (item.leafs (item.relation syl 'SylStructure)))
+            segments)
     (let ((totlen (+ conslen vowlen))
           (syldur (apply + (syl->durations syl)))
           (addoffset (item.feat syl 'addoffset))
@@ -376,11 +391,12 @@
             (let ((vowelstretch (/ voweltime vowlen)))
               (mapcar (lambda (s)
                         (let ((slen (get_avg_duration (item.feat s "name"))))
-                          (if (equal? "+" (item.feat s "ph_vc"))
+                          (if (or (equal? "+" (item.feat s "ph_vc"))
+                                  (equal? "+" (item.feat s "singing-vc")))
                               (set! slen (* vowelstretch slen)))
                           (set! singing_global_time (+ slen singing_global_time))
                           (item.set_feat s 'end singing_global_time)))
-                      (item.leafs (item.relation syl 'SylStructure))))))))
+                      segments))))))
   (let ((restlen (car (syl->rest syl))))
     (if singing-debug
         (format t "restlen %l\n" restlen))
