@@ -402,11 +402,20 @@
         (format t "restlen %l\n" restlen))
     (if (> restlen 0)
         (let ((lastseg (item.daughtern (item.relation syl 'SylStructure)))
-              (SIL (car (car (cdr (assoc 'silences (PhoneSet.description)))))))
-          (set! singing_global_time (+ restlen singing_global_time))
-          (item.insert (item.relation lastseg 'Segment)
-                       (list SIL (list (list "end" singing_global_time)))
-                       'after)))))
+              (SIL (car (car (cdr (assoc 'silences (PhoneSet.description))))))
+              (singing_global_time* singing_global_time))
+          (let ((seg (item.relation lastseg 'Segment))
+                (extra-pause-length 0.00001))
+            (set! singing_global_time (+ restlen singing_global_time))
+            (item.insert seg (list SIL (list (list "end" singing_global_time))) 'after)
+            ;; insert a very short extra pause to avoid after-effects, especially
+            ;; after vowels
+            (if (and seg
+                     (equal? (item.feat seg "ph_vc") "+")
+                     (< extra-pause-length restlen))
+                (item.insert seg (list SIL (list (list "end" (+ singing_global_time*
+                                                                extra-pause-length))))
+                             'after)))))))
 
 ;;
 ;; singing_fix_segment
