@@ -335,6 +335,8 @@
 ;; end of the previous token.
 ;;
 
+(defvar singing-max-short-vowel-length 0.11)
+
 (define (singing_do_syllable syl)
   (let ((conslen 0.0)
         (vowlen 0.0)
@@ -388,12 +390,21 @@
                     (item.leafs (item.relation syl 'SylStructure))))
 	  ;; otherwise, stretch the vowels and not the consonants
 	  (let ((voweltime (- syldur conslen)))
-            (let ((vowelstretch (/ voweltime vowlen)))
+            (let ((vowelstretch (/ voweltime vowlen))
+                  (phones (mapcar car (car (cdar (PhoneSet.description '(phones)))))))
               (mapcar (lambda (s)
                         (let ((slen (get_avg_duration (item.feat s "name"))))
                           (if (or (equal? "+" (item.feat s "ph_vc"))
                                   (equal? "+" (item.feat s "singing-vc")))
-                              (set! slen (* vowelstretch slen)))
+                              (begin
+                                (set! slen (* vowelstretch slen))
+                                ;; If the sound is long enough, better results
+                                ;; may be achieved by using longer versions of
+                                ;; the vowels.
+                                (if (> slen singing-max-short-vowel-length)
+                                    (let ((sname (string-append (item.feat s "name") ":")))
+                                      (if (member_string sname phones)
+                                          (item.set_feat s "name" sname))))))
                           (set! singing_global_time (+ slen singing_global_time))
                           (item.set_feat s 'end singing_global_time)))
                       segments))))))
