@@ -662,10 +662,15 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
         (verse-list '()))
     (while (not (null? note-list))
       (if (null? lyrics/skip-list)
-          (begin
+          (let ((final-rests '()))
             (while (and (not (null? note-list))
                         (song:rest? (car note-list)))
+              (song:push! (car note-list) final-rests)
               (set! note-list (cdr note-list)))
+            (if (not (null? final-rests))
+                (set! verse-list (append verse-list
+                                         (list (song:make-verse #:text ""
+                                                                #:notelist/rests (reverse! final-rests))))))
             (if (not (null? note-list))
                 (begin
                   (song:warning (car note-list) "Missing lyrics: ~a ~a" context note-list)
