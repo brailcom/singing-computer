@@ -171,7 +171,8 @@ only."
                        (mapcan (lambda (f)
                                  (set-buffer (find-file-noselect f))
                                  (lilysong-all-songs))
-                               (lilysong-document-files)))))
+                               (lilysong-document-files)))
+                     :test #'equal))
 
 (defvar lilysong-song-history nil)
 (make-variable-buffer-local 'lilysong-song-history)
