@@ -433,7 +433,7 @@ only."
 
 (defun LilyPond-command-sing (&optional arg)
   "Sing lyrics of the current LilyPond buffer.
-Without any prefix argument, sing current \festival* command.
+Without any prefix argument, sing current \\festival* command.
 With the universal prefix argument, ask which parts to sing.
 With a double universal prefix argument, sing all the parts.
 With a numeric prefix argument, ask which parts to sing and sing them
@@ -443,7 +443,7 @@ sequentially rather than in parallel."
 
 (defun LilyPond-command-sing-and-play (&optional arg)
   "Sing lyrics and play midi of the current LilyPond buffer.
-Without any prefix argument, sing and play current \festival* and \midi
+Without any prefix argument, sing and play current \\festival* and \\midi
 commands.
 With the universal prefix argument, ask which parts to sing and play.
 With a double universal prefix argument, sing and play all the parts."
