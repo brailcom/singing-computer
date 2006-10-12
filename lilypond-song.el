@@ -267,6 +267,7 @@ only."
   (setq lilysong-last-command-args (list songs midi-files in-parallel))
   (lilysong-update-language)
   (add-to-list 'compilation-finish-functions 'lilysong-after-compilation)
+  (setq songs (mapcar #'expand-file-name songs))
   (let* ((makefile (lilysong-makefile (current-buffer) songs midi-files))
          (command (format "make -f %s" makefile)))
     (setq lilysong-compilation-data
