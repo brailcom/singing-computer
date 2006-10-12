@@ -165,13 +165,16 @@ only."
           (push current result))))
     (nreverse result)))
 
+(defun lilysong-walk-files (collector)
+  (save-excursion
+    (mapcar (lambda (f)
+              (set-buffer (find-file-noselect f))
+              (funcall collector))
+            (lilysong-document-files))))
+
 (defun lilysong-all-songs* ()
   "Return list of XML file names of the song commands in the current document."
-  (remove-duplicates (save-excursion
-                       (mapcan (lambda (f)
-                                 (set-buffer (find-file-noselect f))
-                                 (lilysong-all-songs))
-                               (lilysong-document-files)))
+  (remove-duplicates (apply #'append (lilysong-walk-files #'lilysong-all-songs))
                      :test #'equal))
 
 (defvar lilysong-song-history nil)
@@ -232,12 +235,15 @@ only."
 
 (defun lilysong-midi-list (multi)
   (if multi
-      (let ((midi-string (LilyPond-string-all-midi))
+      (let ((basename (file-name-sans-extension (buffer-file-name)))
+            (count (apply #'+ (save-match-data
+                                (lilysong-walk-files #'count-midi-words))))
             (midi-files '()))
-        (save-match-data
-          (while (string-match "^\\([^ ]+\\) \\(.*\\)$" midi-string)
-            (push (match-string 1 midi-string) midi-files)
-            (setq midi-string (match-string 2 midi-string))))
+        (while (> count 0)
+          (setq count (1- count))
+          (if (= count 0)
+              (push (concat basename ".midi") midi-files)
+            (push (format "%s-%d.midi" basename count) midi-files)))
         midi-files)
     (list (LilyPond-string-current-midi))))
 
