@@ -308,8 +308,15 @@ only."
           (insert " " f))
         (insert "\n")
         (when lilyfiles
-          (dolist (f lilyfiles)
+          (dolist (f songs)
             (insert f " "))
+          (when midi-files
+            (insert ": ")
+            (dolist (f midi-files)
+              (insert f " "))
+            (insert "\n")
+            (dolist (f midi-files)
+              (insert f " ")))
           (insert ": " (mapconcat 'identity source-files " ") "\n")
           (insert "\t" LilyPond-lilypond-command " " master-file "\n")
           (dolist (f songs)
