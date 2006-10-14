@@ -464,6 +464,7 @@ With a double universal prefix argument, sing and play all the parts."
     (error "No previous singing command")))
 
 (define-key LilyPond-mode-map "\C-c\C-a" 'LilyPond-command-sing)
+(define-key LilyPond-mode-map "\C-c\C-q" 'LilyPond-command-sing-and-play)
 (define-key LilyPond-mode-map "\C-c\C-z" 'LilyPond-command-sing-last)
 
 (easy-menu-add-item LilyPond-command-menu nil
