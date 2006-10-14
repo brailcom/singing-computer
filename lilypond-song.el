@@ -339,12 +339,13 @@ only."
   (let ((data lilysong-compilation-data))
     (when (and data
                (equal compile-command
-                      (lilysong-compilation-data-command data))
-               (lilysong-up-to-date-p (lilysong-compilation-data-makefile data)))
-      (lilysong-process-generated-files data))))
+                      (lilysong-compilation-data-command data)))
+      (unwind-protect
+          (when (lilysong-up-to-date-p (lilysong-compilation-data-makefile data))
+            (lilysong-process-generated-files data))
+        (delete-file (lilysong-compilation-data-makefile data))))))
 
 (defun lilysong-process-generated-files (data)
-  (delete-file (lilysong-compilation-data-makefile data))
   (setq lilysong-last-language lilysong-language)
   (lilysong-play-files (lilysong-compilation-data-in-parallel data)
                        (lilysong-compilation-data-songs data)
