@@ -87,6 +87,7 @@
   (or lilysong-voices
       (with-temp-buffer
         (call-process "lilysong" nil t nil "--list-voices")
+        (call-process "lilysong" nil t nil "--list-languages")
         (goto-char (point-min))
         (while (not (eobp))
           (push (buffer-substring-no-properties

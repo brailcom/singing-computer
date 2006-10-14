@@ -6,6 +6,7 @@ usage () {
   echo "usage: $0 [ -p PLAY-PROGRAM ] FILE.xml [ LANGUAGE-CODE-OR-VOICE [ SPEEDUP ] ]"
   echo "       $0 FILE.ly [ LANGUAGE-CODE-OR-VOICE ]"
   echo "       $0 --list-voices"
+  echo "       $0 --list-languages"
   exit 1
 }
 
@@ -63,10 +64,29 @@ festival --pipe <<EOF
 EOF
 }
 
+list_languages () {
+festival --pipe <<EOF
+(let ((languages '()))
+  (let ((voices (voice.list))
+        (print-language (lambda (v)
+                          (let ((language (cadr (assoc 'language (cadr (voice.description v))))))
+                            (if (and language (not (member language languages)))
+                                (begin
+                                  (set! languages (cons language languages))
+                                  (print language)))))))
+    (mapcar print-language voices)
+    (mapcar (lambda (v) (if (not (member v voices)) (print-language v)))
+            (mapcar car Voice_descriptions))))
+EOF
+}
+
 if [ "$1" = --help ]; then
   usage
 elif [ "$1" = --list-voices ]; then
   list_voices
+  exit 0
+elif [ "$1" = --list-languages ]; then
+  list_languages
   exit 0
 fi
 
@@ -85,10 +105,16 @@ if [ $# -lt 1 ] || [ $# -gt 3 ]; then
   usage
 fi
 
-if [ -z "$voice" ] || [ "$voice" = "en" ]; then
-  voice=voice_kal_diphone
-elif [ "$voice" = "cs" ]; then
-  voice=voice_czech_ph
+if [ "${voice#voice_}" = "$voice" ]; then
+  candidates=$(echo "
+(mapcar (lambda (v)
+          (if (eq (cadr (assoc 'language (cadr (voice.description v))))
+                  '$voice)
+              (format t \"voice_%s\n\" v)))
+        (append (voice.list) (mapcar car Voice_descriptions)))" | \
+  festival --pipe)
+  carray=($candidates)
+  voice=${carray[0]}
 fi
 
 if [ "$file" = "${file%ly}" ]; then
