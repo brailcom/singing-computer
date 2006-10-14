@@ -315,7 +315,7 @@ only."
             (insert ": ")
             (dolist (f midi-files)
               (insert f " "))
-            (insert "\n")
+            (insert "\n\ttouch $@\n")
             (dolist (f midi-files)
               (insert f " ")))
           (insert ": " (mapconcat 'identity source-files " ") "\n")
