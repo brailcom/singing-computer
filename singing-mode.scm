@@ -277,7 +277,8 @@
 ;;
 
 (define (singing_duration_method utt)
-  (mapcar singing_adjcons_syllable (utt.relation.items utt 'Syllable))  
+  (mapcar singing_adjcons_syllable (utt.relation.items utt 'Syllable))
+  (singing_do_initial utt (car (utt.relation.items utt 'Token)))
   (mapcar singing_do_syllable (utt.relation.items utt 'Syllable))
   (mapcar singing_fix_segment (utt.relation.items utt 'Segment))
   utt)
@@ -336,6 +337,18 @@
 ;;
 
 (defvar singing-max-short-vowel-length 0.11)
+
+(define (singing_do_initial utt token)
+  (if (equal? (item.name token) "")
+      (let ((restlen (car (item.feat token 'rest))))
+        (if singing-debug
+            (format t "restlen %l\n" restlen))
+        (if (> restlen 0)
+            (let ((silence (car (car (cdr (assoc 'silences (PhoneSet.description)))))))
+              (set! singing_global_time restlen)
+              (item.relation.insert (utt.relation.first utt 'Segment) 'Segment
+                                    (list silence (list (list "end" singing_global_time)))
+                                    'before))))))
 
 (define (singing_do_syllable syl)
   (let ((conslen 0.0)
@@ -413,18 +426,18 @@
         (format t "restlen %l\n" restlen))
     (if (> restlen 0)
         (let ((lastseg (item.daughtern (item.relation syl 'SylStructure)))
-              (SIL (car (car (cdr (assoc 'silences (PhoneSet.description))))))
+              (silence (car (car (cdr (assoc 'silences (PhoneSet.description))))))
               (singing_global_time* singing_global_time))
           (let ((seg (item.relation lastseg 'Segment))
                 (extra-pause-length 0.00001))
             (set! singing_global_time (+ restlen singing_global_time))
-            (item.insert seg (list SIL (list (list "end" singing_global_time))) 'after)
+            (item.insert seg (list silence (list (list "end" singing_global_time))) 'after)
             ;; insert a very short extra pause to avoid after-effects, especially
             ;; after vowels
             (if (and seg
                      (equal? (item.feat seg "ph_vc") "+")
                      (< extra-pause-length restlen))
-                (item.insert seg (list SIL (list (list "end" (+ singing_global_time*
+                (item.insert seg (list silence (list (list "end" (+ singing_global_time*
                                                                 extra-pause-length))))
                              'after)))))))
 
@@ -495,7 +508,10 @@
   (let ((tokens (utt.relation.items utt 'Token)))
     (if tokens
         ;; we have to wrap value into a list to work around a Festival bug
-        (item.set_feat (car (last tokens)) feature (list value)))))
+        (item.set_feat (car (last tokens)) feature (list value))
+        (begin
+          (utt.relation.append utt 'Token '(""))
+          (item.set_feat (car (last (utt.relation.items utt 'Token))) feature (list value))))))
 
 (define (singing-feat item feature)
   (let ((value (item.feat item feature)))
