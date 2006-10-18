@@ -467,7 +467,8 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
         ((song:music-name? music 'EventChord)
          (song:debug "Simple music event" music)
          (let ((note (song:find-child-named music 'NoteEvent))
-               (rest (song:find-child-named music 'RestEvent)))
+               (rest (or (song:find-child-named music 'RestEvent)
+                         (song:find-child-named music 'MultiMeasureRestEvent))))
            (cond
             (note
              (song:debug "Note" note)
