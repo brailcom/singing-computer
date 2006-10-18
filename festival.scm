@@ -210,7 +210,7 @@
                   (song:note-origin object-with-origin))
                  ((song:rest? object-with-origin)
                   (song:rest-origin object-with-origin))
-                 ((ly:location? object-with-origin)
+                 ((ly:input-location? object-with-origin)
                   object-with-origin)
                  (else
                   (format #t "Minor programming error: ~a~%" object-with-origin)
