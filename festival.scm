@@ -212,6 +212,8 @@
                   (song:rest-origin object-with-origin))
                  ((ly:input-location? object-with-origin)
                   object-with-origin)
+                 ((ly:music? object-with-origin)
+                  (ly:music-property object-with-origin 'origin))
                  (else
                   (format #t "Minor programming error: ~a~%" object-with-origin)
                   #f))))
