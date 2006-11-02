@@ -55,6 +55,10 @@
   :group 'LilyPond
   :type 'string)
 
+;; In case you would like to use fluidsynth (not recommended as fluidsynth
+;; can perform wave file synthesis only in real time), you can use the
+;; following setting:
+;; (setq LilyPond-midi->wav-command "fluidsynth -nil -a file soundfont.sf2 '%s' && sox -t raw -s -r 44100 -w -c 2 fluidsynth.raw '%t'")
 (defcustom LilyPond-midi->wav-command "timidity -Ow -o '%t' '%s'"
   "Command used to make a WAV file from a MIDI file.
 %s in the string is replaced with the source MIDI file name,
