@@ -55,7 +55,7 @@
   :group 'LilyPond
   :type 'string)
 
-(defcustom LilyPond-midi->wav-command "timidity -Ow -o %t %s"
+(defcustom LilyPond-midi->wav-command "timidity -Ow -o '%t' '%s'"
   "Command used to make a WAV file from a MIDI file.
 %s in the string is replaced with the source MIDI file name,
 %t is replaced with the target WAV file name."
