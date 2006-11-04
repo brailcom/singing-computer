@@ -59,10 +59,11 @@
 ;; can perform wave file synthesis only in real time), you can use the
 ;; following setting:
 ;; (setq LilyPond-midi->wav-command "fluidsynth -nil -a file soundfont.sf2 '%s' && sox -t raw -s -r 44100 -w -c 2 fluidsynth.raw '%t'")
-(defcustom LilyPond-midi->wav-command "timidity -Ow -o '%t' '%s'"
+(defcustom LilyPond-midi->wav-command "timidity -Ow %m -o '%t' '%s'"
   "Command used to make a WAV file from a MIDI file.
 %s in the string is replaced with the source MIDI file name,
-%t is replaced with the target WAV file name."
+%t is replaced with the target WAV file name.
+%m is replaced with lilymidi call."
   :group 'LilyPond
   :type 'string)
 
@@ -72,6 +73,18 @@
   "If non-nil, use ecasound for mixing and playing songs."
   :group 'LilyPond
   :type 'boolean)
+
+(defcustom LilyPond-voice-track-regexp "voice"
+  "Perl regexp matching names of MIDI tracks to be ignored on sing&play."
+  :group 'LilyPond
+  :type 'string)
+
+(defcustom LilyPond-lilymidi-command "\"`lilymidi --prefix-tracks -Q --filter-tracks '%s' '%f'`\""
+  "Command to insert into LilyPond-midi->wav-command calls.
+%f is replaced with the corresponding MIDI file name.
+%s is replaced with `LilyPond-voice-track-regexp'."
+  :group 'LilyPond
+  :type 'string)
 
 
 ;;; Lyrics language handling
@@ -329,15 +342,23 @@ only."
             (insert "\t" LilyPond-synthesize-command " $< " (or language "") "\n"))
           ;; We can't use midi files in ecasound directly, because setpos
           ;; doesn't work on them.
-          (dolist (f midi-files)
-            (insert (lilysong-file->wav f) ": " f "\n")
-            (let ((command LilyPond-midi->wav-command))
-              (when (string-match "%s" command)
-                (setq command (replace-match f nil nil command)))
-              (when (string-match "%t" command)
-                (setq command (replace-match (lilysong-file->wav f) nil nil command)))
-              (insert "\t" command "\n")))
-          )))
+          (let ((lilymidi LilyPond-lilymidi-command))
+            (when (string-match "%s" lilymidi)
+              (setq lilymidi (replace-match LilyPond-voice-track-regexp nil nil lilymidi)))
+            (dolist (f midi-files)
+              (insert (lilysong-file->wav f) ": " f "\n")
+              (let ((command LilyPond-midi->wav-command)
+                    (lilymidi* lilymidi))
+                (when (string-match "%s" command)
+                  (setq command (replace-match f nil nil command)))
+                (when (string-match "%t" command)
+                  (setq command (replace-match (lilysong-file->wav f) nil nil command)))
+                (when (string-match "%f" lilymidi*)
+                  (setq lilymidi (replace-match f nil nil lilymidi*)))
+                (when (string-match "%m" command)
+                  (setq command (replace-match lilymidi nil nil command)))
+                (insert "\t" command "\n")))
+            ))))
     temp-file))
 
 (defun lilysong-after-compilation (buffer message)
