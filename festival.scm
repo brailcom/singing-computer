@@ -477,11 +477,15 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
                       result-list))
          #t)
         ;; a note or rest
-        ((song:music-name? music 'EventChord)
+        ((or (song:music-name? music 'EventChord)
+             (song:music-name? music 'MultiMeasureRestMusic)) ; 2.10
          (song:debug "Simple music event" music)
          (let ((note (song:find-child-named music 'NoteEvent))
-               (rest (or (song:find-child-named music 'RestEvent)
-                         (song:find-child-named music 'MultiMeasureRestEvent))))
+               (rest (if (song:music-name? music 'MultiMeasureRestMusic) ; 2.10
+                         music
+                         (or (song:find-child-named music 'RestEvent)
+                             (song:find-child-named music 'MultiMeasureRestEvent) ; 2.8
+                             ))))
            (cond
             (note
              (song:debug "Note" note)
