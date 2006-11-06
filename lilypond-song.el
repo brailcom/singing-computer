@@ -251,11 +251,14 @@ only."
                                             'lilysong-song-history)))
         (setq lilysong-last-song-list (nreverse song-list))))))
 
+(defun lilysong-count-midi-words ()
+  (count-rexp (point-min) (point-max) "^[^%]*\\\\midi"))
+
 (defun lilysong-midi-list (multi)
   (if multi
       (let ((basename (file-name-sans-extension (buffer-file-name)))
             (count (apply #'+ (save-match-data
-                                (lilysong-walk-files #'count-midi-words))))
+                                (lilysong-walk-files #'lilysong-count-midi-words))))
             (midi-files '()))
         (while (> count 0)
           (setq count (1- count))
