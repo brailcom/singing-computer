@@ -295,12 +295,25 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
     (* (expt 2 (- log)) (+ 1 (/ dots 2)) (/ (car factor) (cdr factor)))))
 
 (define (song:tempo->beats music)
-  (let ((tempo (song:find-child-named music 'MetronomeChangeEvent)))
+  (let* ((tempo-spec (or (song:find-child-named music 'MetronomeChangeEvent)
+                         (song:find-child-named music 'SequentialMusic)))
+         (tempo (cond
+                 ((not tempo-spec)
+                  #f)
+                 ((song:music-name? tempo-spec 'MetronomeChangeEvent)
+                  (* (ly:music-property tempo-spec 'metronome-count)
+                     (song:duration->number (ly:music-property tempo-spec 'tempo-unit))))
+                 ((song:music-name? tempo-spec 'SequentialMusic)
+                  (* (song:property-value
+                      (song:find-child tempo-spec (lambda (elt) (song:music-property? elt 'tempoUnitCount))))
+                     (song:duration->number
+                      (song:property-value
+                       (song:find-child tempo-spec (lambda (elt) (song:music-property? elt 'tempoUnitDuration)))))))
+                 (else
+                  (format #t "Programming error (tempo->beats): ~a~%" tempo-spec)))))
     (if tempo
-        (let* ((count (ly:music-property tempo 'metronome-count))
-               (duration (ly:music-property tempo 'tempo-unit)))
-          (round (* count (* (song:duration->number duration)
-                             (expt 2 (+ 2 song:*base-octave-shift*)))))))))
+        (round (* tempo (expt 2 (+ 2 song:*base-octave-shift*))))
+        #f)))
 
 (song:defstruct music-context
   music
