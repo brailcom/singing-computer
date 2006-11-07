@@ -25,13 +25,14 @@ use Getopt::Long;
 
 sub usage ()
 {
-    print "usage: lilymidi [ --filter-tracks PATTERN [ --prefix-tracks PREFIX ] ] FILE\n";
+    print "usage: lilymidi [ --filter-tracks PATTERN [ --prefix-tracks PREFIX ] | --dump ] FILE\n";
     exit 1;
 }
 
 $result = GetOptions ("help" => \$opt_help,
                       "filter-tracks=s" => \$opt_filter_tracks,
-                      "prefix-tracks=s" => \$opt_prefix_tracks);
+                      "prefix-tracks=s" => \$opt_prefix_tracks,
+                      "dump" => \$opt_dump);
 if ($opt_help || @ARGV != 1)
 {
     usage ();
@@ -53,7 +54,11 @@ $opus = MIDI::Opus->new ({'from_file' => $file});
     $name;
 } $opus->tracks ();;
 
-if ($opt_filter_tracks)
+if ($opt_dump)
+{
+    $opus->dump ({'dump_tracks' => '1'});
+}
+elsif ($opt_filter_tracks)
 {
     shift @track_names;
     my @numbers = ();
