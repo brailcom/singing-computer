@@ -40,18 +40,27 @@ if ($opt_help || @ARGV != 1)
 $file = $ARGV[0];
 
 $opus = MIDI::Opus->new ({'from_file' => $file});
+$i = 1;
 @track_names = map {
     my @events = $_->events ();
-    my $name;
+    my $name = "";
+    my $found = 0;
     foreach my $e (@events)
     {
-        if ($$e[0] == "track_name")
+        if ($$e[0] eq "track_name")
         {
             $name = $$e[2];
-            last;
+            $found++;
         }
+        elsif ($$e[0] eq "patch_change")
+        {
+            $i = $$e[2] + 1;
+            $found++;
+        }
+        if ($found >= 2) { last; }
     }
-    $name;
+    my @item = ($i++, $name);
+    \@item;
 } $opus->tracks ();;
 
 if ($opt_dump)
@@ -60,16 +69,13 @@ if ($opt_dump)
 }
 elsif ($opt_filter_tracks)
 {
-    shift @track_names;
     my @numbers = ();
-    my $i = 1;
     foreach my $name (@track_names)
     {
-        if ($name =~ $opt_filter_tracks)
+        if ($$name[1] =~ $opt_filter_tracks)
         {
-            push @numbers, ($i);
+            push @numbers, ($$name[0]);
         }
-        ++$i;
     }
     if ($opt_prefix_tracks && @numbers)
     {
@@ -79,10 +85,9 @@ elsif ($opt_filter_tracks)
 }
 else
 {
-    my $i = 0;
     foreach my $name (@track_names)
     {
-        print $i . " " . $name . "\n";
+        print $$name[0] . " " . $$name[1] . "\n";
         ++$i;
     }
 }
