@@ -180,7 +180,7 @@ The Emacs singing support adds new commands for singing lyrics synthesized in
 the \festival and \festivalsyl LilyPond commands:
 
   M-x LilyPond-command-sing (C-c C-a)
-  M-x LilyPond-command-sing-and-play
+  M-x LilyPond-command-sing-and-play (C-c C-q)
   M-x LilyPond-command-sing-last (C-c C-z)
 
 See online documentation of the commands in Emacs for more details.
