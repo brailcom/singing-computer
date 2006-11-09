@@ -36,7 +36,7 @@
 ;;; Code:
 
 
-(eval-when-compile (require 'cl))
+(require 'cl)
 (require 'lilypond-mode)
 
 (ignore-errors (require 'ecasound))
@@ -59,13 +59,23 @@
 ;; can perform wave file synthesis only in real time), you can use the
 ;; following setting:
 ;; (setq LilyPond-midi->wav-command "fluidsynth -nil -a file soundfont.sf2 '%s' && sox -t raw -s -r 44100 -w -c 2 fluidsynth.raw '%t'")
-(defcustom LilyPond-midi->wav-command "timidity -Ow %m -o '%t' '%s'"
+(defcustom LilyPond-midi->wav-command "timidity -Ow %m -s %r -o '%t' '%s'"
   "Command used to make a WAV file from a MIDI file.
 %s in the string is replaced with the source MIDI file name,
 %t is replaced with the target WAV file name.
+%r is replaced with rate.
 %m is replaced with lilymidi call."
   :group 'LilyPond
   :type 'string)
+
+(defcustom LilyPond-voice-rates
+  '((".*czech.*" . 44100)
+    (".*" . 16000))
+  "Alist of regexps matching voices and the corresponding voice rates.
+It may be necessary to define proper voice rates here in order to
+avoid ecasound resampling problems."
+  :group 'LilyPond
+  :type '(alist :key-type regexp :value-type integer))
 
 (defcustom LilyPond-use-ecasound (and (featurep 'ecasound)
                                       (executable-find "ecasound")
@@ -345,7 +355,10 @@ only."
             (insert "\t" LilyPond-synthesize-command " $< " (or language "") "\n"))
           ;; We can't use midi files in ecasound directly, because setpos
           ;; doesn't work on them.
-          (let ((lilymidi LilyPond-lilymidi-command))
+          (let ((lilymidi LilyPond-lilymidi-command)
+                (voice-rate (format "%d" (or (cdr (assoc-if (lambda (key) (string-match key language))
+                                                            LilyPond-voice-rates))
+                                             16000))))
             (when (string-match "%s" lilymidi)
               (setq lilymidi (replace-match LilyPond-voice-track-regexp nil nil lilymidi)))
             (dolist (f midi-files)
@@ -356,6 +369,8 @@ only."
                   (setq command (replace-match f nil nil command)))
                 (when (string-match "%t" command)
                   (setq command (replace-match (lilysong-file->wav f) nil nil command)))
+                (when (string-match "%r" command)
+                  (setq command (replace-match voice-rate nil nil command)))
                 (when (string-match "%f" lilymidi*)
                   (setq lilymidi (replace-match f nil nil lilymidi*)))
                 (when (string-match "%m" command)
