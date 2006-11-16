@@ -515,8 +515,20 @@ With a double universal prefix argument, sing and play all the parts."
       (apply 'lilysong-sing lilysong-last-command-args)
     (error "No previous singing command")))
 
+(defun LilyPond-command-clean ()
+  "Remove generated *.xml and *.wav files used for singing."
+  (interactive)
+  (flet ((delete-file* (file)
+           (when (file-exists-p file)
+             (delete-file file))))
+    (dolist (xml-file (lilysong-song-list 'all))
+      (delete-file* xml-file)
+      (delete-file* (lilysong-file->wav xml-file)))
+    (mapc 'delete-file* (mapcar 'lilysong-file->wav (lilysong-midi-list 'all)))))
+
 (define-key LilyPond-mode-map "\C-c\C-a" 'LilyPond-command-sing)
 (define-key LilyPond-mode-map "\C-c\C-q" 'LilyPond-command-sing-and-play)
+(define-key LilyPond-mode-map "\C-c\C-x" 'LilyPond-command-clean)
 (define-key LilyPond-mode-map "\C-c\C-z" 'LilyPond-command-sing-last)
 
 (easy-menu-add-item LilyPond-command-menu nil
