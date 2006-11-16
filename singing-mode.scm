@@ -510,7 +510,8 @@
         ;; we have to wrap value into a list to work around a Festival bug
         (item.set_feat (car (last tokens)) feature (list value))
         (begin
-          (utt.relation.append utt 'Token '(""))
+          (utt.relation.append utt 'Token '("" ((name "") (whitespace "")
+                                                (prepunctuation "") (punc ""))))
           (item.set_feat (car (last (utt.relation.items utt 'Token))) feature (list value))))))
 
 (define (singing-feat item feature)
