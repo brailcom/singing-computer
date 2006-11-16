@@ -27,7 +27,7 @@
 ;; documentation for more information):
 ;; 
 ;; - M-x LilyPond-command-sing (C-c C-a)
-;; - M-x LilyPond-command-sing-and-play
+;; - M-x LilyPond-command-sing-and-play (C-c C-q)
 ;; - M-x LilyPond-command-sing-last (C-c C-z)
 ;; 
 ;; Note these commands are not available from the standard LilyPond mode
