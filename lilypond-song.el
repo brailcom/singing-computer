@@ -148,7 +148,7 @@ avoid ecasound resampling problems."
           (push file resulting-files)
           (save-excursion
             (save-restriction
-              (set-buffer (find-file-noselect file))
+              (set-buffer (find-file-noselect file nil))
               (widen)
               (goto-char (point-min))
               (while (re-search-forward "^[^%\n]*\\\\include +\"\\([^\"]+\\)\"" nil t)
