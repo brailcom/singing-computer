@@ -70,6 +70,7 @@
 
 (defcustom LilyPond-voice-rates
   '((".*czech.*" . 44100)
+    (".*\\<fi\\(\\>\\|nnish\\).*" . 22050)
     (".*" . 16000))
   "Alist of regexps matching voices and the corresponding voice rates.
 It may be necessary to define proper voice rates here in order to
