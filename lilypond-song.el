@@ -317,6 +317,9 @@ only."
            :midi midi-files
            :in-parallel in-parallel))
     (save-some-buffers (not compilation-ask-about-save))
+    (unless (equal lilysong-language lilysong-last-language)
+      (mapc #'(lambda (f) (when (file-exists-p f) (delete-file f)))
+            (append songs (mapcar 'lilysong-file->wav midi-files))))
     (if (lilysong-up-to-date-p makefile)
         (lilysong-process-generated-files lilysong-compilation-data)
       (compile command))))
@@ -387,7 +390,8 @@ only."
         (delete-file (lilysong-compilation-data-makefile data))))))
 
 (defun lilysong-process-generated-files (data)
-  (setq lilysong-last-language lilysong-language)
+  (with-current-buffer (lilysong-compilation-data-buffer data)
+    (setq lilysong-last-language lilysong-language))
   (lilysong-play-files (lilysong-compilation-data-in-parallel data)
                        (lilysong-compilation-data-songs data)
                        (lilysong-compilation-data-midi data)))
