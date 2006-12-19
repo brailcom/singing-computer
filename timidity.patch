@@ -1,0 +1,113 @@
+Index: timidity/playmidi.c
+===================================================================
+RCS file: /cvsroot/timidity/timidity/timidity/playmidi.c,v
+retrieving revision 1.196
+diff -u -r1.196 playmidi.c
+--- timidity/playmidi.c	13 Apr 2006 20:24:20 -0000	1.196
++++ timidity/playmidi.c	1 Nov 2006 18:35:35 -0000
+@@ -214,6 +214,7 @@
+ int opt_pan_delay = 0;	/* phase difference between left ear and right ear. */
+ int opt_user_volume_curve = 0;
+ int opt_default_module = MODULE_TIMIDITY_DEFAULT;
++int opt_preserve_silence = 0;
+ 
+ int voices=DEFAULT_VOICES, upper_voices;
+ 
+Index: timidity/playmidi.h
+===================================================================
+RCS file: /cvsroot/timidity/timidity/timidity/playmidi.h,v
+retrieving revision 1.53
+diff -u -r1.53 playmidi.h
+--- timidity/playmidi.h	30 Jun 2004 08:50:37 -0000	1.53
++++ timidity/playmidi.h	1 Nov 2006 18:35:35 -0000
+@@ -478,6 +478,7 @@
+ 
+ /* --module */
+ extern int opt_default_module;
++extern int opt_preserve_silence;
+ 
+ enum {
+ 	MODULE_TIMIDITY_DEFAULT = 0x0,
+Index: timidity/readmidi.c
+===================================================================
+RCS file: /cvsroot/timidity/timidity/timidity/readmidi.c,v
+retrieving revision 1.97
+diff -u -r1.97 readmidi.c
+--- timidity/readmidi.c	31 May 2006 02:35:46 -0000	1.97
++++ timidity/readmidi.c	1 Nov 2006 18:35:39 -0000
+@@ -3364,6 +3364,7 @@
+     int me, type, a, b, c;
+     int i;
+     int32 smf_at_time;
++    int note_seen = (! opt_preserve_silence);
+ 
+     smf_at_time = readmidi_set_track(trackno, rewindp);
+ 
+@@ -3667,7 +3668,13 @@
+ 		b = tf_getc(tf) & 0x7F;
+ 		if(b)
+ 		{
+-		    MIDIEVENT(smf_at_time, ME_NOTEON, lastchan, a,b);
++                    if (! note_seen && smf_at_time > 0)
++                    {
++                        MIDIEVENT(0, ME_NOTEON, lastchan, a, 0);
++                        MIDIEVENT(0, ME_NOTEOFF, lastchan, a, 0);
++                        note_seen = 1;
++                    }
++                    MIDIEVENT(smf_at_time, ME_NOTEON, lastchan, a,b);
+ 		}
+ 		else /* b == 0 means Note Off */
+ 		{
+Index: timidity/timidity.c
+===================================================================
+RCS file: /cvsroot/timidity/timidity/timidity/timidity.c,v
+retrieving revision 1.180
+diff -u -r1.180 timidity.c
+--- timidity/timidity.c	27 Jul 2006 05:40:01 -0000	1.180
++++ timidity/timidity.c	1 Nov 2006 18:35:42 -0000
+@@ -206,6 +206,7 @@
+ 	TIM_OPT_FREQ_TABLE,
+ 	TIM_OPT_PURE_INT,
+ 	TIM_OPT_MODULE,
++        TIM_OPT_PRESERVE_SILENCE,
+ 	/* last entry */
+ 	TIM_OPT_LAST = TIM_OPT_PURE_INT
+ };
+@@ -358,6 +359,7 @@
+ 	{ "freq-table",             required_argument, NULL, TIM_OPT_FREQ_TABLE },
+ 	{ "pure-intonation",        optional_argument, NULL, TIM_OPT_PURE_INT },
+ 	{ "module",                 required_argument, NULL, TIM_OPT_MODULE },
++	{ "preserve-silence",       no_argument,       NULL, TIM_OPT_PRESERVE_SILENCE },
+ 	{ NULL,                     no_argument,       NULL, '\0'     }
+ };
+ #define INTERACTIVE_INTERFACE_IDS "kmqagrwAWP"
+@@ -498,6 +500,7 @@
+ static inline void expand_escape_string(char *);
+ static inline int parse_opt_Z(char *);
+ static inline int parse_opt_Z1(const char *);
++static inline int parse_opt_preserve_silence(const char *);
+ static inline int parse_opt_default_module(const char *);
+ __attribute__((noreturn))
+ static inline int parse_opt_fail(const char *);
+@@ -2871,6 +2874,8 @@
+ 		return parse_opt_Z1(arg);
+ 	case TIM_OPT_MODULE:
+ 		return parse_opt_default_module(arg);
++        case TIM_OPT_PRESERVE_SILENCE:
++                return parse_opt_preserve_silence(arg);
+ 	default:
+ 		ctl->cmsg(CMSG_FATAL, VERB_NORMAL,
+ 				"[BUG] Inconceivable case branch %d", c);
+@@ -4842,6 +4847,12 @@
+ 	return 0;
+ }
+ 
++static inline int parse_opt_preserve_silence(const char *arg)
++{
++        opt_preserve_silence = 1;
++	return 0;
++}
++
+ __attribute__((noreturn))
+ static inline int parse_opt_fail(const char *arg)
+ {

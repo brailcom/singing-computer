@@ -185,6 +185,12 @@ automaticky použije.  Emacsová podpora Ecasoundu je však implicitně nastaven
 na daemon mód, který obvykle nefunguje, je tedy potřeba ho odnastavit.  To se
 provede nastavením emacsové proměnné ecasound-arguments, např. zrušením
 zaškrtnutí volby "Allow remote connections" v customize.
+
+UPOZORNĚNÍ: Při současném přehrávání zpěvu a MIDI se lze setkat s potíží
+spočívající v tom, že timidity usekává počáteční pomlky v MIDI souboru.  To lze
+potlačit aplikací patche ze souboru timidity.patch na zdrojový kód timidity a
+následným překompilováním a reinstalací timidity.  Je též poté nutno přidat
+volbu --preserve-silence do emacsové proměnné LilyPond-midi->wav-command.
   
 * Problémy
 

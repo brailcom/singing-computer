@@ -190,6 +190,13 @@ default.  Ecasound Emacs support uses a daemon mode which usually doesn't work
 so you must to disable it in the ecasound-arguments Emacs variable, e.g. by
 disabling its "Allow remote connections" option in customize.
 
+NOTE: If you let Emacs sing and play MIDI at the same time, you may experience
+the timidity problem of cutting off initial silences in the MIDI music.  This
+can be fixed by applying the patch file timidity.patch to timidity sources
+followed by timidity recompilation and reinstallation.  Then it's also
+necessary to add the --preserve-silence option to the
+LilyPond-midi->wav-command Emacs variable.
+
 * Problems
 
 Current Festival versions contain a bug that causes Festival crashes or
