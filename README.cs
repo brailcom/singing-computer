@@ -177,6 +177,7 @@ lilypondovými příkazy \festival a \festivalsyl:
   M-x LilyPond-command-sing (C-c C-a)
   M-x LilyPond-command-sing-and-play
   M-x LilyPond-command-sing-last (C-c C-z)
+  M-x LilyPond-command-clean (C-c C-x)
 
 Více informací naleznete v online dokumentaci těchto příkazů v Emacsu.
 
