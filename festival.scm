@@ -292,7 +292,7 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
   (let* ((log (ly:duration-log duration))
          (dots (ly:duration-dot-count duration))
          (factor (ly:duration-factor duration)))
-    (* (expt 2 (- log)) (+ 1 (/ dots 2)) (/ (car factor) (cdr factor)))))
+    (exact->inexact (* (expt 2 (- log)) (+ 1 (/ dots 2)) (/ (car factor) (cdr factor))))))
 
 (define (song:tempo->beats music)
   (let* ((tempo-spec (or (song:find-child-named music 'MetronomeChangeEvent)
