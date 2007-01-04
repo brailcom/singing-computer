@@ -1,6 +1,6 @@
 ;;; festival.scm --- Festival singing mode output
 
-;; Copyright (C) 2006 Brailcom, o.p.s.
+;; Copyright (C) 2006, 2007 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -190,7 +190,7 @@
                  ((< octave 0)
                   (make-uniform-array #\, (- 0 octave)))))
               (song:pp-duration (song:note-duration object))
-              (if (song:note-joined object) "-" ""))))
+              (if (> (song:note-joined object) 0) "-" ""))))
    ((song:rest? object)
     (format #f "r~a" (song:pp-duration (song:rest-duration object))))
    (else
@@ -439,7 +439,8 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
   ;; Returns list of score-* instances.
   (let* ((result-list '())
          (in-slur 0)
-         (autobeaming autobeaming*))
+         (autobeaming autobeaming*)
+         (last-note-spec #f))
     (song:process-music
      music
      (lambda (music)
@@ -501,11 +502,10 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
                     (slur-end (length (filter (lambda (e) (song:music-property-value? e 'span-direction 1))
                                               events))))
                (set! in-slur (+ in-slur slur-start (- slur-end)))
-               (if (< in-slur 0)
-                   (song:warning note "Slur underrun"))
-               (let ((note-spec (song:make-note #:pitch pitch #:duration duration #:joined (> in-slur 0)
+               (let ((note-spec (song:make-note #:pitch pitch #:duration duration #:joined in-slur
                                                 #:origin (ly:music-property note 'origin)))
                      (last-result (and (not (null? result-list)) (last result-list))))
+                 (set! last-note-spec note-spec)
                  (if (and last-result
                           (song:score-notes? last-result))
                      (song:set-score-notes-note/rest-list!
@@ -529,6 +529,12 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
         ((song:music-property? music 'autoBeaming)
          (set! autobeaming (song:property-value music))
          #t)
+        ;; melisma change
+        ((song:music-property? music 'melismaBusy) ; 2.10
+         (let ((change (if (song:property-value music) 1 -1)))
+           (set! in-slur (+ in-slur change))
+           (if last-note-spec
+               (song:set-note-joined! last-note-spec (+ (song:note-joined last-note-spec) change)))))
         ;; anything else
         (else
          #f))))
@@ -762,7 +768,10 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
                     (not (null? note-list)))
           (let ((note (car note-list)))
             (song:push! note consumed)
-            (set! join (and (not ignore-melismata) (song:note-joined note))))
+            (let ((note-slur (song:note-joined note)))
+              (if (< note-slur 0)
+                  (song:warning note "Slur underrun"))
+              (set! join (and (not ignore-melismata) (> note-slur 0)))))
           (set! note-list (cdr note-list)))
         (if join
             (song:warning (song:car (if (null? note-list) consumed note-list))
