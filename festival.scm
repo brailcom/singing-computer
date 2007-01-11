@@ -47,6 +47,9 @@
 ;(define song:*base-octave-shift* -2)
 (define song:*base-octave-shift* 0)
 
+;; The coeficient by which the notes just before \breath are shortened.
+(define song:*breathe-shortage* 0.8)
+
 ;; Iff true, enable a lot of debugging output
 (define song:*debug* #f)
 
@@ -535,6 +538,15 @@ If FUNCTION applied on a node returns true, don't process the node's subtree."
            (set! in-slur (+ in-slur change))
            (if last-note-spec
                (song:set-note-joined! last-note-spec (+ (song:note-joined last-note-spec) change)))))
+        ;; breathe
+        ((song:music-name? music 'BreathingEvent)
+         (if last-note-spec
+             (let* ((note-duration (song:note-duration last-note-spec))
+                    (rest-spec (song:make-rest #:duration (* note-duration (- 1 song:*breathe-shortage*))
+                                               #:origin (ly:music-property music 'origin))))
+               (song:set-note-duration! last-note-spec (* note-duration song:*breathe-shortage*))
+               (song:add! (song:make-score-notes #:note/rest-list (list rest-spec)) result-list))
+             (song:warning music "\\\\breathe without previous note known")))
         ;; anything else
         (else
          #f))))

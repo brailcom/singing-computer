@@ -1,4 +1,4 @@
-tests := lily1 lily2 lily3 lily4 lily5 lily6 lily6a lily7 lily7a lily8 lily9 lily-cs1
+tests := lily1 lily2 lily3 lily4 lily5 lily6 lily6a lily7 lily7a lily8 lily9 lily10 lily-cs1
 
 default: $(addsuffix .result,$(tests))
 	ls -l *.result
