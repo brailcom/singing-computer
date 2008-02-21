@@ -339,7 +339,7 @@
 (defvar singing-max-short-vowel-length 0.11)
 
 (define (singing_do_initial utt token)
-  (if (equal? (item.name token) "")
+  (if (and token (equal? (item.name token) ""))
       (let ((restlen (car (item.feat token 'rest))))
         (if singing-debug
             (format t "restlen %l\n" restlen))
